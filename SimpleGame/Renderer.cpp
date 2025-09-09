@@ -46,6 +46,31 @@ void Renderer::CreateVertexBufferObjects()
 	glGenBuffers(1, &m_VBORect);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBORect);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect), rect, GL_STATIC_DRAW);
+
+	//lecture 2
+	float testPos[]
+		=
+	{
+		0.f, 0.f, 0.f,
+		1.f, 0.f, 0.f,
+		1.f, 1.f, 0.f,
+	};
+	//m_VBOTest라는 Buffer Object를 헤더에서 이미 생성 
+	glGenBuffers(1, &m_VBOTestPos); // Object ID 를 ids인자로 넣어줌(바인드)
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOTestPos); // 버퍼에 데이터 넣기
+	glBufferData(GL_ARRAY_BUFFER, sizeof(testPos), testPos, GL_STATIC_DRAW); //
+
+	float testColor[]
+		=
+	{
+		1.f, 0.f, 0.f, 1.f,
+		0.f, 1.f, 0.f, 1.f,
+		0.f, 0.f, 1.f, 1.f    //Triangle1
+	};
+
+	glGenBuffers(1, &m_VBOTestColor);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOTestColor);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(testColor), testColor, GL_STATIC_DRAW);
 }
 
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
@@ -188,7 +213,32 @@ void Renderer::DrawSolidRect(float x, float y, float z, float size, float r, flo
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
+void Renderer::DrawTest()
+{
+	//Program select
+	glUseProgram(m_SolidRectShader);
+	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Trans"), 0, 0, 0, 1);
+	glUniform4f(glGetUniformLocation(m_SolidRectShader, "u_Color"), 1, 1, 1, 1);
 
+	int aPosLoc = glGetAttribLocation(m_SolidRectShader, "a_Position");
+	int aColLoc = glGetAttribLocation(m_SolidRectShader, "a_Color");
+
+	glEnableVertexAttribArray(aPosLoc);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOTestPos);
+	glVertexAttribPointer(aPosLoc, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+
+	glEnableVertexAttribArray(aColLoc);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOTestColor);
+	glVertexAttribPointer(aColLoc, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
+
+
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+
+	glDisableVertexAttribArray(aPosLoc);
+	glDisableVertexAttribArray(aColLoc);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 void Renderer::GetGLPosition(float x, float y, float *newX, float *newY)
 {
 	*newX = x * 2.f / m_WindowSizeX;

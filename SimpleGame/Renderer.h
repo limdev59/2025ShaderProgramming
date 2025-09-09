@@ -15,6 +15,8 @@ public:
 
 	bool IsInitialized();
 	void DrawSolidRect(float x, float y, float z, float size, float r, float g, float b, float a);
+	void DrawTest();
+
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
@@ -30,6 +32,9 @@ private:
 	unsigned int m_WindowSizeY = 0;
 
 	GLuint m_VBORect = 0;
+	GLuint m_VBOTestPos = 0;
+	GLuint m_VBOTestColor = 0;
+
 	GLuint m_SolidRectShader = 0;
 };
 
