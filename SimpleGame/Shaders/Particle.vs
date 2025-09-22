@@ -21,8 +21,5 @@ void main()
 	newPosition.xy = newPosition.xy + vec2(x, y);
 	gl_Position = newPosition;
 
-
-	gl_Position = newPosition;
-	
 	v_Color = a_Color;
 }

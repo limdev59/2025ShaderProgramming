@@ -170,10 +170,14 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\Particle.fs" />
+    <None Include="Shaders\Particle.vs" />
     <None Include="Shaders\SolidRect.fs" />
     <None Include="Shaders\SolidRect.vs" />
-    <None Include="Test.fs" />
-    <None Include="Test.vs" />
+
+    <None Include="Shaders\Test.fs" />
+    <None Include="Shaders\Test.vs" />
+
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
