@@ -34,6 +34,8 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	//Create VBOs
 	CreateVertexBufferObjects();
 
+	GenerateParticles(1000);
+
 	if (m_SolidRectShader > 0 && m_VBORect > 0)
 	{
 		m_Initialized = true;
@@ -256,7 +258,7 @@ void Renderer::DrawSolidRect(float x, float y, float z, float size, float r, flo
 
 void Renderer::DrawTest()
 {
-	m_Time += 0.00016f;
+	m_Time += 0.016f;
 
 	glUseProgram(m_TestShader);
 
