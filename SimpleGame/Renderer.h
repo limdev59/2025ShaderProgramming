@@ -36,5 +36,7 @@ private:
 	GLuint m_VBOTestColor = 0;
 
 	GLuint m_SolidRectShader = 0;
+	GLuint m_TestShader = 0;
+	float  m_Time = 0;
 };
 
