@@ -3,8 +3,8 @@
 in vec3 a_Position;
 in float a_Value;
 in vec4 a_Color;
-in float a_STime;
-in vec3 a_Vel;
+in float a_sTime;
+in vec3 a_VelLocity;
 in float a_LifeTime;
 in float a_Mass;
 in float a_Period;
@@ -22,7 +22,7 @@ void raining()
 	float lifeTime = a_LifeTime;
 	float newAlpha = 1.0f;
 	vec4 newPosition = vec4(a_Position, 1.0f);
-	float newTime = u_Time - a_STime;
+	float newTime = u_Time - a_sTime;
 
 	if(newTime > 0)
 	{
@@ -36,8 +36,8 @@ void raining()
 		float aX = forceX / a_Mass * 50;
 		float aY = forceY / a_Mass;
 
-		float x = a_Vel.x * t + 0.5 * aX * 0.2 * tt;
-		float y = a_Vel.y * t + 0.5 * (aY * 3.f) * 0.2 * tt;
+		float x = a_VelLocity.x * t + 0.5 * aX * 0.2 * tt;
+		float y = a_VelLocity.y * t + 0.5 * (aY * 3.f) * 0.2 * tt;
 
 		newPosition.xy += vec2(x, y);
 		newAlpha = 1.0f - t/lifeTime;	// 1-0
@@ -56,7 +56,7 @@ void sinParticle()
 	vec4 centerC = vec4(1,0,0,1);
 	vec4 borderC = vec4(1,1,1,0);
 
-	float newTime = u_Time - a_STime; 
+	float newTime = u_Time - a_sTime; 
 	float lifeTime = a_LifeTime;
 	float newAlpha = 1.0f;
 	vec4 newColor = a_Color;
@@ -85,7 +85,7 @@ void sinParticle()
 
 void circleParticle()
 {
-	float newTime = u_Time - a_STime; 
+	float newTime = u_Time - a_sTime; 
 	float lifeTime = a_LifeTime;
 	float newAlpha = 1.0f;
 	vec4 newPosition = vec4(a_Position, 1.0f);
