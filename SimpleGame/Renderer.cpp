@@ -24,7 +24,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	//Create VBOs
 	CreateVertexBufferObjects();
 
-	GenerateParticles(50000);
+	GenerateParticles(10000);
 
 	if (m_SolidRectShader > 0 && m_VBORect > 0)
 	{
@@ -329,7 +329,7 @@ void Renderer::DrawParticle()
 	int aValueLoc = glGetAttribLocation(shader, "a_Value");
 	int aColLoc = glGetAttribLocation(shader, "a_Color");
 	int asTimeLoc = glGetAttribLocation(shader, "a_sTime");
-	int aVelLoc = glGetAttribLocation(shader, "a_VelLocity");
+	int aVelLoc = glGetAttribLocation(shader, "a_Velocity");
 	int aLifeTimeLoc = glGetAttribLocation(shader, "a_LifeTime");
 	int aMassLoc = glGetAttribLocation(shader, "a_Mass");
 	int aPeriodLoc = glGetAttribLocation(shader, "a_Period");

@@ -4,7 +4,7 @@ in vec3 a_Position;
 in float a_Value;
 in vec4 a_Color;
 in float a_sTime;
-in vec3 a_VelLocity;
+in vec3 a_Velocity;
 in float a_LifeTime;
 in float a_Mass;
 in float a_Period;
@@ -36,8 +36,8 @@ void raining()
 		float aX = forceX / a_Mass * 50;
 		float aY = forceY / a_Mass;
 
-		float x = a_VelLocity.x * t + 0.5 * aX * 0.2 * tt;
-		float y = a_VelLocity.y * t + 0.5 * (aY * 3.f) * 0.2 * tt;
+		float x = a_Velocity.x * t + 0.5 * aX * 0.2 * tt;
+		float y = a_Velocity.y * t + 0.5 * (aY * 3.f) * 0.2 * tt;
 
 		newPosition.xy += vec2(x, y);
 		newAlpha = 1.0f - t/lifeTime;	// 1-0
@@ -114,7 +114,7 @@ void circleParticle()
 
 void main()
 {
-	raining();
+	//raining();
 	//sinParticle();
-	//circleParticle();
+	circleParticle();
 }
