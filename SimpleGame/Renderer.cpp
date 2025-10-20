@@ -155,144 +155,72 @@ void Renderer::CreateVertexBufferObjects()
 		fullRect, GL_STATIC_DRAW);
 }
 
+// Renderer.cpp -> 이 함수 전체를 아래 코드로 교체하세요.
 void Renderer::CreateGridMesh(int x, int y)
-
 {
 	float basePosX = -0.5f;
 	float basePosY = -0.5f;
 	float targetPosX = 0.5f;
-
 	float targetPosY = 0.5f;
 
-
-	
 	int pointCountX = x;
-
 	int pointCountY = y;
 
-
-
 	float width = targetPosX - basePosX;
-
 	float height = targetPosY - basePosY;
 
-
-
-	float* point = new float[pointCountX * pointCountY * 2];
-
-	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3];
-
+	// 정점 당 데이터: 위치(x,y,z), 노멀(nx,ny,nz), UV(u,v) -> 총 8개의 float
+	int floatsPerVertex = 8;
+	float* vertices = new float[(pointCountX - 1) * (pointCountY - 1) * 2 * 3 * floatsPerVertex];
 	m_GridMeshVertexCount = (pointCountX - 1) * (pointCountY - 1) * 2 * 3;
 
-
-
-	//Prepare points
-
-	for (int x = 0; x < pointCountX; x++)
-
-	{
-		for (int y = 0; y < pointCountY; y++)
-		{
-			point[(y * pointCountX + x) * 2 + 0] = basePosX + width * (x / (float)(pointCountX - 1));
-			point[(y * pointCountX + x) * 2 + 1] = basePosY + height * (y / (float)(pointCountY - 1));
-
-		}
-
-	}
-
-
-
-	//Make triangles
-
 	int vertIndex = 0;
-
-	for (int x = 0; x < pointCountX - 1; x++)
-
+	for (int ix = 0; ix < pointCountX - 1; ix++)
 	{
-
-		for (int y = 0; y < pointCountY - 1; y++)
-
+		for (int iy = 0; iy < pointCountY - 1; iy++)
 		{
+			// 네 꼭짓점의 위치와 UV 계산
+			float x1 = basePosX + width * (ix / (float)(pointCountX - 1));
+			float y1 = basePosY + height * (iy / (float)(pointCountY - 1));
+			float u1 = (float)ix / (pointCountX - 1);
+			float v1 = (float)iy / (pointCountY - 1);
 
-			//Triangle part 1
+			float x2 = basePosX + width * ((ix + 1) / (float)(pointCountX - 1));
+			float y2 = basePosY + height * (iy / (float)(pointCountY - 1));
+			float u2 = (float)(ix + 1) / (pointCountX - 1);
+			float v2 = (float)iy / (pointCountY - 1);
 
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
+			float x3 = basePosX + width * (ix / (float)(pointCountX - 1));
+			float y3 = basePosY + height * ((iy + 1) / (float)(pointCountY - 1));
+			float u3 = (float)ix / (pointCountX - 1);
+			float v3 = (float)(iy + 1) / (pointCountY - 1);
 
-			vertIndex++;
+			float x4 = basePosX + width * ((ix + 1) / (float)(pointCountX - 1));
+			float y4 = basePosY + height * ((iy + 1) / (float)(pointCountY - 1));
+			float u4 = (float)(ix + 1) / (pointCountX - 1);
+			float v4 = (float)(iy + 1) / (pointCountY - 1);
 
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
+			// 정점 데이터 (위치, 노멀, UV)
+			float verts[] = {
+				// 삼각형 1
+				x1, y1, 0.f,  0.f, 0.f, 1.f,  u1, v1,
+				x3, y3, 0.f,  0.f, 0.f, 1.f,  u3, v3,
+				x4, y4, 0.f,  0.f, 0.f, 1.f,  u4, v4,
+				// 삼각형 2
+				x1, y1, 0.f,  0.f, 0.f, 1.f,  u1, v1,
+				x4, y4, 0.f,  0.f, 0.f, 1.f,  u4, v4,
+				x2, y2, 0.f,  0.f, 0.f, 1.f,  u2, v2
+			};
 
-			vertIndex++;
-
-			vertices[vertIndex] = 0.f;
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
-
-			vertIndex++;
-
-			vertices[vertIndex] = 0.f;
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 0];
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + x) * 2 + 1];
-
-			vertIndex++;
-
-			vertices[vertIndex] = 0.f;
-
-			vertIndex++;
-
-			//Triangle part 2
-
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 0];
-			vertIndex++;
-
-			vertices[vertIndex] = point[(y * pointCountX + x) * 2 + 1];
-
-			vertIndex++;
-
-			vertices[vertIndex] = 0.f;
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 0];
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[(y * pointCountX + (x + 1)) * 2 + 1];
-
-			vertIndex++;
-
-			vertices[vertIndex] = 0.f;
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 0];
-
-			vertIndex++;
-
-			vertices[vertIndex] = point[((y + 1) * pointCountX + (x + 1)) * 2 + 1];
-			vertIndex++;
-			vertices[vertIndex] = 0.f;
-			vertIndex++;
+			memcpy(&vertices[vertIndex], verts, sizeof(verts));
+			vertIndex += sizeof(verts) / sizeof(float);
 		}
 	}
 
 	glGenBuffers(1, &m_GridMeshVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (pointCountX - 1) * (pointCountY - 1) * 2 * 3 * 3, vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * m_GridMeshVertexCount * floatsPerVertex, vertices, GL_STATIC_DRAW);
 
-	delete[] point;
 	delete[] vertices;
 }
 
@@ -520,35 +448,45 @@ GLuint Renderer::CompileShaders(char* filenameVS, char* filenameFS)
 
 	std::string vs, fs;
 
-	//shader.vs 가 vs 안으로 로딩됨
+	// 버텍스 셰이더 로딩
 	if (!ReadFile(filenameVS, &vs)) {
-		printf("Error compiling vertex shader\n");
+		printf("Error reading vertex shader: %s\n", filenameVS);
 		return -1;
 	};
 
-	//shader.fs 가 fs 안으로 로딩됨
+	// 프래그먼트 셰이더 로딩
 	if (!ReadFile(filenameFS, &fs)) {
-		printf("Error compiling fragment shader\n");
+		printf("Error reading fragment shader: %s\n", filenameFS);
 		return -1;
 	};
 
-	// ShaderProgram 에 vs.c_str() 버텍스 쉐이더를 컴파일한 결과를 attach함
-	AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+	// GridMesh.fs를 컴파일하는 경우에만 blender_nodes.glsl 파일을 앞에 붙여줍니다.
+	std::string fs_final_source = fs;
+	if (strcmp(filenameFS, "./Shaders/GridMesh.fs") == 0)
+	{
+		std::string node_utils_source;
+		if (ReadFile((char*)"./Shaders/blender_nodes.glsl", &node_utils_source))
+		{
+			fs_final_source = node_utils_source + fs;
+			printf("Successfully included blender_nodes.glsl for GridMesh.fs\n");
+		}
+		else
+		{
+			printf("Warning: Could not find ./Shaders/blender_nodes.glsl for GridMesh.fs\n");
+		}
+	}
 
-	// ShaderProgram 에 fs.c_str() 프레그먼트 쉐이더를 컴파일한 결과를 attach함
-	AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
+	// 셰이더 컴파일 및 attach
+	AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
+	AddShader(ShaderProgram, fs_final_source.c_str(), GL_FRAGMENT_SHADER);
 
 	GLint Success = 0;
 	GLchar ErrorLog[1024] = { 0 };
 
-	//Attach 완료된 shaderProgram 을 링킹함
+	// 링킹 및 에러 확인 (이하 동일)
 	glLinkProgram(ShaderProgram);
-
-	//링크가 성공했는지 확인
 	glGetProgramiv(ShaderProgram, GL_LINK_STATUS, &Success);
-
 	if (Success == 0) {
-		// shader program 로그를 받아옴
 		glGetProgramInfoLog(ShaderProgram, sizeof(ErrorLog), NULL, ErrorLog);
 		std::cout << filenameVS << ", " << filenameFS << " Error linking shader program\n" << ErrorLog;
 		return -1;
@@ -563,7 +501,7 @@ GLuint Renderer::CompileShaders(char* filenameVS, char* filenameFS)
 	}
 
 	glUseProgram(ShaderProgram);
-	std::cout << filenameVS << ", " << filenameFS << " Shader compiling is done.";
+	std::cout << filenameVS << ", " << filenameFS << " Shader compiling is done.\n";
 
 	return ShaderProgram;
 }
@@ -752,30 +690,51 @@ void Renderer::DrawFullScreenColor(float r, float g, float b, float a)
 	glDisable(GL_BLEND);
 }
 
+// Renderer.cpp -> 이 함수 전체를 아래 코드로 교체하세요.
 void Renderer::DrawGridMesh()
 {
 	GLuint shader = m_GridMeshVertexShader;
 	glUseProgram(shader);
 
-	GLuint attribPosition = glGetAttribLocation(
-		shader, "a_Position");
-	glEnableVertexAttribArray(attribPosition);
-
+	// --- Uniform 변수 전달 ---
 	int uTimeLoc = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(uTimeLoc, m_Time);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
-	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE,
-		sizeof(float) * 3, 0);
+	int uResolutionLoc = glGetUniformLocation(shader, "u_resolution");
+	glUniform2f(uResolutionLoc, (float)m_WindowSizeX, (float)m_WindowSizeY);
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	// 카메라 위치 전달 (Camera, Reflection 구현용)
+	int uCameraPosLoc = glGetUniformLocation(shader, "u_camera_position");
+	glUniform3f(uCameraPosLoc, 0.0f, 0.0f, 2.0f); // 예시 카메라 위치
+
+	// --- Vertex Attribute 설정 ---
+	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
+
+	int stride = sizeof(float) * 8; // 정점 하나당 8개의 float (pos, norm, uv)
+
+	// a_Position (location = 0)
+	GLuint attribPosition = glGetAttribLocation(shader, "a_Position");
+	glEnableVertexAttribArray(attribPosition);
+	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, stride, 0);
+
+	// a_Normal (location = 1)
+	GLuint attribNormal = glGetAttribLocation(shader, "a_Normal");
+	glEnableVertexAttribArray(attribNormal);
+	glVertexAttribPointer(attribNormal, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 3));
+
+	// a_UV (location = 2)
+	GLuint attribUV = glGetAttribLocation(shader, "a_UV");
+	glEnableVertexAttribArray(attribUV);
+	glVertexAttribPointer(attribUV, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 6));
+
+
 	glDrawArrays(GL_TRIANGLES, 0, m_GridMeshVertexCount);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	glDisableVertexAttribArray(attribPosition);
+	glDisableVertexAttribArray(attribNormal);
+	glDisableVertexAttribArray(attribUV);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 }
 
 void Renderer::AddTime()

@@ -170,6 +170,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\blender_nodes.glsl" />
     <None Include="Shaders\FullScreen.fs" />
     <None Include="Shaders\FullScreen.vs" />
     <None Include="Shaders\GridMesh.fs" />
