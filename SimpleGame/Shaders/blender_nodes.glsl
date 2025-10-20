@@ -51,12 +51,7 @@ vec3 texCoord_Reflection() {
     // 시각화를 위해 0~1 범위로 변환
     return reflect_vector * 0.5 + 0.5;
 }
-// blender_nodes.glsl 파일에서 아래 코드로 Noise 부분을 교체하세요.
 
-// =======================================================
-// Noise Texture Node (Corrected Version)
-// Based on a classic 2D Simplex Noise implementation
-// =======================================================
 
 vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
 vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
