@@ -62,6 +62,10 @@ private:
 	
 	GLuint m_VBOFullScreen = 0;
 	GLuint m_FullScreenShader = 0;
+
+	static const int RAMP_SIZE = 4; // 컬러 램프의 색상 개수
+	float m_RampColors[RAMP_SIZE][3];
+	float m_RampPositions[RAMP_SIZE];
 };
 
 

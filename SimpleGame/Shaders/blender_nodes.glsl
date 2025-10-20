@@ -98,3 +98,30 @@ float texture_Noise(vec2 uv, float scale, float detail, float roughness, float d
     }
     return (value + 1.0) * 0.5;
 }
+
+const int RAMP_SIZE = 4;
+uniform vec3 u_ramp_colors[RAMP_SIZE];
+uniform float u_ramp_positions[RAMP_SIZE];
+
+vec3 texture_ColorRamp(float factor) {
+    if (factor <= u_ramp_positions[0]) {
+        return u_ramp_colors[0];
+    }
+    
+    if (factor >= u_ramp_positions[RAMP_SIZE - 1]) {
+        return u_ramp_colors[RAMP_SIZE - 1];
+    }
+
+    for (int i = 0; i < RAMP_SIZE - 1; i++) {
+        if (factor >= u_ramp_positions[i] && factor <= u_ramp_positions[i+1]) {
+            float start_pos = u_ramp_positions[i];
+            float end_pos = u_ramp_positions[i+1];
+            
+            float t = (factor - start_pos) / (end_pos - start_pos);
+            
+            return mix(u_ramp_colors[i], u_ramp_colors[i+1], t);
+        }
+    }
+
+    return u_ramp_colors[0];
+}

@@ -17,6 +17,16 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_WindowSizeX = windowSizeX;
 	m_WindowSizeY = windowSizeY;
 
+	m_RampPositions[0] = 0.0f;
+	m_RampPositions[1] = 0.3f;
+	m_RampPositions[2] = 0.7f;
+	m_RampPositions[3] = 1.0f;
+
+	// Colors (R, G, B)
+	m_RampColors[0][0] = 0.0f; m_RampColors[0][1] = 0.0f; m_RampColors[0][2] = 0.0f; // Black
+	m_RampColors[1][0] = 0.0f; m_RampColors[1][1] = 0.1f; m_RampColors[1][2] = 0.8f; // Blue
+	m_RampColors[2][0] = 0.9f; m_RampColors[2][1] = 1.0f; m_RampColors[2][2] = 0.2f; // Yellow
+	m_RampColors[3][0] = 1.0f; m_RampColors[3][1] = 1.0f; m_RampColors[3][2] = 1.0f; // White
 
 	//셰이더 컴파일
 	CompileAllShaderPrograms();
@@ -726,6 +736,13 @@ void Renderer::DrawGridMesh()
 	GLuint attribUV = glGetAttribLocation(shader, "a_UV");
 	glEnableVertexAttribArray(attribUV);
 	glVertexAttribPointer(attribUV, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 6));
+
+
+	int rampColorsLoc = glGetUniformLocation(shader, "u_ramp_colors");
+	glUniform3fv(rampColorsLoc, RAMP_SIZE, &m_RampColors[0][0]);
+
+	int rampPositionsLoc = glGetUniformLocation(shader, "u_ramp_positions");
+	glUniform1fv(rampPositionsLoc, RAMP_SIZE, m_RampPositions);
 
 
 	glDrawArrays(GL_TRIANGLES, 0, m_GridMeshVertexCount);
