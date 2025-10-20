@@ -19,6 +19,7 @@ public:
 	void DrawTest();
 	void DrawParticle();
 	void DrawGridMesh();
+	void AddTime();
 	void DrawFullScreenColor(float r, float g, float b, float a);
 
 

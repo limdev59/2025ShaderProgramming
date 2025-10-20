@@ -24,7 +24,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	//Create VBOs
 	CreateVertexBufferObjects();
 
-	//GenerateParticles(10000);
+	GenerateParticles(10000);
 	CreateGridMesh(100, 100);
 
 	if (m_SolidRectShader > 0 && m_VBORect > 0)
@@ -594,8 +594,6 @@ void Renderer::DrawSolidRect(float x, float y, float z, float size, float r, flo
 
 void Renderer::DrawTest()
 {
-	m_Time += 0.016f;
-
 	glUseProgram(m_TestShader);
 
 	int uTimeLoc = glGetUniformLocation(m_TestShader, "u_Time");
@@ -632,7 +630,6 @@ void Renderer::DrawParticle()
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	m_Time += 0.008f;
 	GLuint shader = m_ParticleShader;
 	glUseProgram(shader);
 
@@ -757,8 +754,6 @@ void Renderer::DrawFullScreenColor(float r, float g, float b, float a)
 
 void Renderer::DrawGridMesh()
 {
-	glDisable(GL_BLEND);
-	m_Time += 0.16f;
 	GLuint shader = m_GridMeshVertexShader;
 	glUseProgram(shader);
 
@@ -781,6 +776,11 @@ void Renderer::DrawGridMesh()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+}
+
+void Renderer::AddTime()
+{
+	m_Time += 0.016f;
 }
 
 void Renderer::GetGLPosition(float x, float y, float* newX, float* newY)
