@@ -165,13 +165,12 @@ void Renderer::CreateVertexBufferObjects()
 		fullRect, GL_STATIC_DRAW);
 }
 
-// Renderer.cpp -> 이 함수 전체를 아래 코드로 교체하세요.
 void Renderer::CreateGridMesh(int x, int y)
 {
-	float basePosX = -0.5f;
-	float basePosY = -0.5f;
-	float targetPosX = 0.5f;
-	float targetPosY = 0.5f;
+	float basePosX = -1.f;
+	float basePosY = -1.f;
+	float targetPosX = 1.f;
+	float targetPosY = 1.f;
 
 	int pointCountX = x;
 	int pointCountY = y;

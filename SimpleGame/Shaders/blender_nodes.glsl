@@ -84,7 +84,7 @@ float snoise(vec2 v) {
     return 130.0 * dot(m, g);
 }
 
-// 블렌더의 Noise Texture 노드를 모방한 함수 (수정 없음)
+// 블렌더의 Noise Texture 노드를 모방한 함수
 float texture_Noise(vec2 uv, float scale, float detail, float roughness, float distortion) {
     float value = 0.0;
     float frequency = scale;
