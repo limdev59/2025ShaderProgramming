@@ -37,6 +37,19 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	GenerateParticles(10000);
 	CreateGridMesh(100, 100);
 
+	int index = 0;
+	for (int i{}; i < 100; ++i) {
+		float x = (float)rand() / (float)RAND_MAX - 1.f;
+		float y = (float)rand() / (float)RAND_MAX - 1.f;
+		float st = 10 * (float)rand() / (float)RAND_MAX;
+		float lt = 10 * (float)rand() / (float)RAND_MAX;
+		m_Points[index++] = x;
+		m_Points[index++] = y;
+		m_Points[index++] = st;
+		m_Points[index++] = lt;
+	}
+
+
 	if (m_SolidRectShader > 0 && m_VBORect > 0)
 	{
 		m_Initialized = true;
@@ -699,15 +712,18 @@ void Renderer::DrawFullScreenColor(float r, float g, float b, float a)
 	glDisable(GL_BLEND);
 }
 
-// Renderer.cpp -> 이 함수 전체를 아래 코드로 교체하세요.
 void Renderer::DrawGridMesh()
 {
+
 	GLuint shader = m_GridMeshVertexShader;
 	glUseProgram(shader);
 
 	// --- Uniform 변수 전달 ---
 	int uTimeLoc = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(uTimeLoc, m_Time);
+	
+	int uPointsLoc = glGetUniformLocation(shader, "u_Points");
+	glUniform4fv(uPointsLoc, 100, m_Points);
 
 	int uResolutionLoc = glGetUniformLocation(shader, "u_resolution");
 	glUniform2f(uResolutionLoc, (float)m_WindowSizeX, (float)m_WindowSizeY);

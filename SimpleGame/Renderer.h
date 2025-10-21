@@ -66,6 +66,8 @@ private:
 	static const int RAMP_SIZE = 4; // 컬러 램프의 색상 개수
 	float m_RampColors[RAMP_SIZE][3];
 	float m_RampPositions[RAMP_SIZE];
+
+	float m_Points[100 * 4];
 };
 
 

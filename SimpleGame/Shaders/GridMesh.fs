@@ -1,6 +1,7 @@
 // 상단오류를 절대 무시해
 layout(location=0) out vec4 FragColor;
 in vec4 v_Color;
+uniform float u_Time;
 
 void main()
 {
@@ -14,7 +15,7 @@ void main()
     vec3 ramp_color = texture_ColorRamp(noise_factor);
 
     // 4.웨이브 색상과 컬러 램프 색상을 혼합
-    vec3 final_color = mix(v_Color.rgb, ramp_color, 0.2);
+    vec3 final_color = mix(v_Color.rgb, ramp_color, 0.f);
 
     FragColor = vec4(final_color, v_Color.a);
 }
