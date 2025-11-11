@@ -21,6 +21,7 @@ public:
 	void DrawGridMesh();
 	void AddTime();
 	void DrawFullScreenColor(float r, float g, float b, float a);
+	void DrawFS();
 
 
 private:
@@ -68,6 +69,9 @@ private:
 	float m_RampPositions[RAMP_SIZE];
 
 	float m_Points[100 * 4];
+
+	GLuint m_VBOFS = 0;
+	GLuint m_FSShader = 0;
 };
 
 

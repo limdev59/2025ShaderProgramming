@@ -34,6 +34,11 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	//Create VBOs
 	CreateVertexBufferObjects();
 
+
+	CreateVertexBufferObjects();
+
+
+
 	GenerateParticles(10000);
 	CreateGridMesh(100, 100);
 
@@ -78,6 +83,10 @@ void Renderer::CompileAllShaderPrograms()
 	m_FullScreenShader = CompileShaders(
 		"./Shaders/FullScreen.vs",
 		"./Shaders/FullScreen.fs");
+
+	m_FSShader = CompileShaders(
+		"./Shaders/FS.vs",
+		"./Shaders/FS.fs");
 }
 
 void Renderer::DeleteAllShaderPrograms()
@@ -87,6 +96,7 @@ void Renderer::DeleteAllShaderPrograms()
 	glDeleteShader(m_ParticleShader);
 	glDeleteShader(m_GridMeshVertexShader);
 	glDeleteShader(m_FullScreenShader);
+	glDeleteShader(m_FSShader);
 }
 
 
@@ -176,7 +186,20 @@ void Renderer::CreateVertexBufferObjects()
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOFullScreen);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(fullRect),
 		fullRect, GL_STATIC_DRAW);
+
+	float rect2[]
+		=
+	{
+		-1.f , -1.f , 0.f, -1.f , 1.f , 0.f, 1.f , 1.f , 0.f,
+		-1.f , -1.f , 0.f,  1.f , 1.f , 0.f, 1.f , -1.f , 0.f,
+	};
+
+	glGenBuffers(1, &m_VBOFS);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOFS);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(rect2), rect2, GL_STATIC_DRAW);
 }
+
+
 
 void Renderer::CreateGridMesh(int x, int y)
 {
@@ -765,6 +788,29 @@ void Renderer::DrawGridMesh()
 	glDisableVertexAttribArray(attribPosition);
 	glDisableVertexAttribArray(attribNormal);
 	glDisableVertexAttribArray(attribUV);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::DrawFS()
+{
+
+	GLuint shader = m_FSShader;
+	glUseProgram(shader);
+
+	int stride = sizeof(float) * 3;
+
+	GLuint attribPosition = glGetAttribLocation(shader, "a_Position");
+	glEnableVertexAttribArray(attribPosition);
+	glBindBuffer(GL_ARRAY_BUFFER, m_VBOFS);
+	glVertexAttribPointer(attribPosition, 3, 
+		GL_FLOAT, GL_FALSE, 
+		stride, 0);
+
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(attribPosition);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
