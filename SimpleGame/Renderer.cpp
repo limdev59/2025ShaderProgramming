@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Renderer.h"
+#include "Dependencies\freeglut.h"
 
 Renderer::Renderer(int windowSizeX, int windowSizeY)
 {
@@ -797,6 +798,21 @@ void Renderer::DrawFS()
 
 	GLuint shader = m_FSShader;
 	glUseProgram(shader);
+
+	float timeValue = (float)glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+	int timeLoc = glGetUniformLocation(shader, "iTime");
+	if (timeLoc != -1) {
+		glUniform1f(timeLoc, timeValue);
+	}
+
+	// 3. iResolution (해상도) 값 전달
+	// "m_WindowWidth"와 "m_WindowHeight"는 예시입니다.
+	// TODO: 'Renderer.h' 파일에서 실제 창 크기 멤버 변수명을 확인하고 대체하세요.
+	int resLoc = glGetUniformLocation(shader, "iResolution");
+	if (resLoc != -1) {
+		// 예: glUniform2f(resLoc, (float)m_width, (float)m_height);
+		glUniform2f(resLoc, (float)m_WindowSizeX, (float)m_WindowSizeY);
+	}	
 
 	int stride = sizeof(float) * 3;
 
