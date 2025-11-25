@@ -4,8 +4,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 #include "Dependencies\glew.h"
+#include "LoadPng.h"
 
 class Renderer
 {
@@ -22,12 +24,15 @@ public:
 	void AddTime();
 	void DrawFullScreenColor(float r, float g, float b, float a);
 	void DrawFS();
+	void DrawTexture(float x, float y, float sx, float sy, GLuint TexID);
 
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
 	void CompileAllShaderPrograms();
 	void DeleteAllShaderPrograms();
+
+	GLuint CreatePngTexture(char* filePath, GLuint samplingMethod);
 
 	bool ReadFile(char* filename, std::string* target);
 	void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
@@ -72,6 +77,24 @@ private:
 
 	GLuint m_VBOFS = 0;
 	GLuint m_FSShader = 0;
+
+	GLuint m_RGBTexture = 0;
+	GLuint m_IVETexture = 0;
+	GLuint m_NUMTexture = 0;
+	
+	GLuint m_0Texture = 0;
+	GLuint m_1Texture = 0;
+	GLuint m_2Texture = 0;
+	GLuint m_3Texture = 0;
+	GLuint m_4Texture = 0;
+	GLuint m_5Texture = 0;
+	GLuint m_6Texture = 0;
+	GLuint m_7Texture = 0;
+	GLuint m_8Texture = 0;
+	GLuint m_9Texture = 0;
+
+	GLuint m_TexVBO = 0;
+	GLuint m_TexShader = 0;
 };
 
 

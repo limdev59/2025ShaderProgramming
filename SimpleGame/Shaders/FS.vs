@@ -11,4 +11,5 @@ void main()
 
 	v_UV.x = (newPosition.x + 1)/2;
 	v_UV.y = (1 - newPosition.y)/2;
+
 }

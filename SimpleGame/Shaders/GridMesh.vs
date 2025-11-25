@@ -1,76 +1,91 @@
 ﻿#version 330
-#define POINT_COUNT 100
-layout (location = 0) in vec3 a_Position;
-layout (location = 1) in vec3 a_Normal;
-layout (location = 2) in vec2 a_UV;
+#define MAX_POINTS 100
 
+in vec3 a_Position;
 out vec4 v_Color;
-out vec3 v_local_position;
-out vec3 v_world_position;
-out vec3 v_normal;
-out vec2 v_uv;
+out vec2 v_UV;
 
 uniform float u_Time;
-uniform vec4 u_Points[POINT_COUNT];
+uniform vec4 u_Points[MAX_POINTS];
+uniform vec2 u_resolution;
 
+const float c_PI = 3.141592;
 
-const float c_RENDER_DISTANCE = 10.0;
-
-vec4 Wave() 
+void flag()
 {
-    // 상수 (c_CONST)
-    const float c_FREQ = 50.0;
-    const float c_SPEED = 1.0;
-    const float c_AMP = 0.1; 
-    const float c_DAMPING = 1.0;
-    const float c_ATTENUATION = 1.5;
+    vec4 newPosition = vec4(a_Position,1);
+    float value = a_Position.x + 0.5f;    // 0-1
+    newPosition.y = newPosition.y * (1-value);
+    float dX = 0;
+    float dY = value * 0.5 * sin(2 * value * c_PI + u_Time * 10);
+    float newColor = (sin(2 * value * c_PI + u_Time * 8) + 1)/2;
+
+    newPosition += vec4(dX,dY,0,0);
+    newPosition.xy *= vec2(2,0.5);
+
+    gl_Position = newPosition;
+    v_UV.x = (newPosition.x + 1)/2;
+	v_UV.y = (1 - newPosition.y)/2;
+    v_Color = vec4(newColor);
+}
+
+void Wave()
+{
+    vec4 newPosition = vec4(a_Position, 1);
+    float dX = 0;
+    float dY = 0;
+
+    vec2 pos = vec2(a_Position.xy);
+    vec2 center = vec2(0,0);
+    float d = distance(pos, center);
+    float y = 2 * clamp(0.5 - d, 0, 1);
+    float newColor = y * sin(d *4 * c_PI * 10 - u_Time * 30);
+
+    newPosition += vec4(dX, dY,0,0);
+    gl_Position = newPosition;
+
+    v_Color = vec4(newColor);
+}
+
+void RainDrop()
+{
+    vec4 newPosition = vec4(a_Position, 1);
+    float dX = 0;
+    float dY = 0;
+
+    vec2 pos = vec2(a_Position.xy);
+    float newColor = 0;
     
-    // 지역 변수 (_VARIABLE)
-    float _total_wave_value = 0.0; 
-
-    for(int i = 0; i < POINT_COUNT; i++) {
-        vec2 _point_pos = u_Points[i].xy;
-        float _started_time = u_Points[i].z;
-        float _lifetime = u_Points[i].w;
-
-        if (u_Time >= _started_time) {
-            float _local_time = u_Time - _started_time;
-
-            if (_local_time > _lifetime) continue;
-
-            float _dist = length(a_Position.xy - _point_pos);
-            float _time_at_point = _dist / c_SPEED;
-            float _wave_age = max(0.0, _local_time - _time_at_point);
-            float _ripple = sin(_wave_age * c_FREQ) * exp(-_wave_age * c_DAMPING);
-            float _distance_falloff = 1.0 / (1.0 + _dist * c_ATTENUATION); 
-
-            _total_wave_value += _ripple * _distance_falloff;
+    for(int i  = 0; i< MAX_POINTS; i++)
+    {
+        float sTime = u_Points[i].z;
+        float lTime = u_Points[i].w;
+        float newTime = u_Time - u_Points[i].z;
+        if(newTime > 0) 
+        {
+            float baseTime = fract(newTime / lTime);
+            float oneMinus = 1 - baseTime;
+            float t = baseTime * lTime;
+            float range = baseTime * lTime / 5;
+            vec2 center = u_Points[i].xy;
+            float d = distance(pos, center);
+            float y = 10 * clamp(range - d, 0, 1);
+            newColor += oneMinus * y * sin(d * 4 * c_PI * 10 - t * 30);
         }
     }
-    vec4 _newPos = vec4(a_Position, 1.0);
-    _newPos.z += _total_wave_value * c_AMP; 
-    gl_Position = _newPos;
-
-    // 6. 100개가 중첩되면 값이 매우 커질 수 있으므로, clamp로 파동 값을 -1~1로 제한합니다.
-    float _normalized_wave = clamp(_total_wave_value, -1.0, 1.0);
-    float _colorFactor = (_normalized_wave + 1.0) * 0.5;
     
-    vec3 _lowColor = vec3(0.0, 0.1, 0.2);
-    vec3 _highColor = vec3(0.5, 0.8, 1.0);
-    vec3 _baseColor = mix(_lowColor, _highColor, _colorFactor);
 
-    _baseColor += sin(a_Position.x + a_Position.y + a_Position.z) * 0.02;
-    float _dist_from_origin = length(a_Position.xyz * 3.0);
-    float _finalAlpha = clamp(_dist_from_origin / c_RENDER_DISTANCE, 0.3, 0.7);
+    newPosition += vec4(dX, dY, 0, 0);
+    gl_Position = newPosition;
 
-    return vec4(_baseColor, _finalAlpha);
+    v_Color = vec4(newColor);
 }
+
+
+
 void main()
 {
-    v_local_position = a_Position;
-    v_world_position = a_Position; 
-    v_normal = a_Normal;
-    v_uv = a_UV;
-
-    v_Color= Wave();
+    flag();
+    // Wave();
+    // RainDrop();
 }

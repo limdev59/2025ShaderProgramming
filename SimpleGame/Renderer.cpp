@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "Renderer.h"
 #include "Dependencies\freeglut.h"
+#include "LoadPng.h"
 
 Renderer::Renderer(int windowSizeX, int windowSizeY)
 {
@@ -10,6 +11,31 @@ Renderer::Renderer(int windowSizeX, int windowSizeY)
 Renderer::~Renderer()
 {
 }
+
+GLuint Renderer::CreatePngTexture(char* filePath, GLuint samplingMethod)
+{
+	//Load Png
+	std::vector<unsigned char> image;
+	unsigned width, height;
+	unsigned error = lodepng::decode(image, width, height, filePath);
+	if (error != 0)
+	{
+		std::cout << "PNG image loading failed:" << filePath << std::endl;
+		assert(0);
+	}
+
+	GLuint temp;
+	glGenTextures(1, &temp);
+	glBindTexture(GL_TEXTURE_2D, temp);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+		GL_UNSIGNED_BYTE, &image[0]);
+
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, samplingMethod);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, samplingMethod);
+
+	return temp;
+}
+
 
 //
 void Renderer::Initialize(int windowSizeX, int windowSizeY)
@@ -29,6 +55,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_RampColors[2][0] = 0.9f; m_RampColors[2][1] = 1.0f; m_RampColors[2][2] = 0.2f; // Yellow
 	m_RampColors[3][0] = 1.0f; m_RampColors[3][1] = 1.0f; m_RampColors[3][2] = 1.0f; // White
 
+
 	//셰이더 컴파일
 	CompileAllShaderPrograms();
 
@@ -42,6 +69,23 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 
 	GenerateParticles(10000);
 	CreateGridMesh(100, 100);
+
+	
+	
+	m_0Texture = CreatePngTexture("./0.png", GL_NEAREST);
+	m_1Texture = CreatePngTexture("./1.png", GL_NEAREST);
+	m_2Texture = CreatePngTexture("./2.png", GL_NEAREST);
+	m_3Texture = CreatePngTexture("./3.png", GL_NEAREST);
+	m_4Texture = CreatePngTexture("./4.png", GL_NEAREST);
+	m_5Texture = CreatePngTexture("./5.png", GL_NEAREST);
+	m_6Texture = CreatePngTexture("./6.png", GL_NEAREST);
+	m_7Texture = CreatePngTexture("./7.png", GL_NEAREST);
+	m_8Texture = CreatePngTexture("./8.png", GL_NEAREST);
+	m_9Texture = CreatePngTexture("./9.png", GL_NEAREST);
+	m_RGBTexture = CreatePngTexture("./rgb.png", GL_NEAREST);
+	m_IVETexture = CreatePngTexture("./cj.png", GL_NEAREST);
+	m_NUMTexture = CreatePngTexture("./numbers.png", GL_NEAREST);
+
 
 	int index = 0;
 	for (int i{}; i < 100; ++i) {
@@ -88,6 +132,10 @@ void Renderer::CompileAllShaderPrograms()
 	m_FSShader = CompileShaders(
 		"./Shaders/FS.vs",
 		"./Shaders/FS.fs");
+
+	m_TexShader = CompileShaders(
+		"./Shaders/Texture.vs",
+		"./Shaders/Texture.fs");
 }
 
 void Renderer::DeleteAllShaderPrograms()
@@ -98,6 +146,7 @@ void Renderer::DeleteAllShaderPrograms()
 	glDeleteShader(m_GridMeshVertexShader);
 	glDeleteShader(m_FullScreenShader);
 	glDeleteShader(m_FSShader);
+	glDeleteShader(m_TexShader);
 }
 
 
@@ -198,6 +247,23 @@ void Renderer::CreateVertexBufferObjects()
 	glGenBuffers(1, &m_VBOFS);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOFS);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(rect2), rect2, GL_STATIC_DRAW);
+
+
+	float fullRect2[]
+		=
+	{
+		-1.f,	-1.f,	0.f,	0.f,	1.f,
+		-1.f,	1.f,	0.f,	0.f,	0.f,
+		1.f,	1.f,	0.f,	1.f,	0.f,
+		-1.f,	-1.f,	0.f,	0.f,	1.f,
+		1.f,	-1.f,	0.f,	1.f,	1.f,
+		1.f ,	1.f,	0.f,	1.f,	0.f
+	};
+
+	glGenBuffers(1, &m_TexVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, m_TexVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(fullRect2),
+		fullRect2, GL_STATIC_DRAW);
 }
 
 
@@ -507,7 +573,7 @@ GLuint Renderer::CompileShaders(char* filenameVS, char* filenameFS)
 	};
 
 	// GridMesh.fs를 컴파일하는 경우에만 blender_nodes.glsl 파일을 앞에 붙여줍니다.
-	std::string fs_final_source = fs;
+	/*std::string fs_final_source = fs;
 	if (strcmp(filenameFS, "./Shaders/GridMesh.fs") == 0)
 	{
 		std::string node_utils_source;
@@ -520,11 +586,11 @@ GLuint Renderer::CompileShaders(char* filenameVS, char* filenameFS)
 		{
 			printf("Warning: Could not find ./Shaders/blender_nodes.glsl for GridMesh.fs\n");
 		}
-	}
+	}*/
 
 	// 셰이더 컴파일 및 attach
 	AddShader(ShaderProgram, vs.c_str(), GL_VERTEX_SHADER);
-	AddShader(ShaderProgram, fs_final_source.c_str(), GL_FRAGMENT_SHADER);
+	AddShader(ShaderProgram, fs.c_str(), GL_FRAGMENT_SHADER);
 
 	GLint Success = 0;
 	GLchar ErrorLog[1024] = { 0 };
@@ -752,9 +818,10 @@ void Renderer::DrawGridMesh()
 	int uResolutionLoc = glGetUniformLocation(shader, "u_resolution");
 	glUniform2f(uResolutionLoc, (float)m_WindowSizeX, (float)m_WindowSizeY);
 
-	// 카메라 위치 전달 (Camera, Reflection 구현용)
-	int uCameraPosLoc = glGetUniformLocation(shader, "u_camera_position");
-	glUniform3f(uCameraPosLoc, 0.0f, 0.0f, 2.0f); // 예시 카메라 위치
+	int uTextureLoc = glGetUniformLocation(shader, "u_Texture");
+	glUniform1f(uTextureLoc, 0);
+
+	glBindTexture(GL_TEXTURE, m_RGBTexture);
 
 	// --- Vertex Attribute 설정 ---
 	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
@@ -799,34 +866,101 @@ void Renderer::DrawFS()
 	GLuint shader = m_FSShader;
 	glUseProgram(shader);
 
-	float timeValue = (float)glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
-	int timeLoc = glGetUniformLocation(shader, "iTime");
-	if (timeLoc != -1) {
-		glUniform1f(timeLoc, timeValue);
+
+	int uTimeLoc = glGetUniformLocation(shader, "u_Time");
+	glUniform1f(uTimeLoc, m_Time);
+
+	GLint loc;
+
+	// 숫자 텍스처 0~9 -> 텍스처 유닛 GL_TEXTURE0 .. GL_TEXTURE9
+	GLuint digitTex[10] = {
+		m_0Texture, m_1Texture, m_2Texture, m_3Texture, m_4Texture,
+		m_5Texture, m_6Texture, m_7Texture, m_8Texture, m_9Texture
+	};
+
+	for (int i = 0; i < 10; ++i) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, digitTex[i]);
+
+		char uniName[16];
+		snprintf(uniName, sizeof(uniName), "u_%dTexture", i);
+		loc = glGetUniformLocation(shader, uniName);
+		if (loc != -1) glUniform1i(loc, i);
 	}
 
-	// 3. iResolution (해상도) 값 전달
-	// "m_WindowWidth"와 "m_WindowHeight"는 예시입니다.
-	// TODO: 'Renderer.h' 파일에서 실제 창 크기 멤버 변수명을 확인하고 대체하세요.
-	int resLoc = glGetUniformLocation(shader, "iResolution");
-	if (resLoc != -1) {
-		// 예: glUniform2f(resLoc, (float)m_width, (float)m_height);
-		glUniform2f(resLoc, (float)m_WindowSizeX, (float)m_WindowSizeY);
-	}	
+	// uDigitTexture에 m_Time % 10 전달 (정수)
+	int digit = ((int)m_Time) % 10;
+	if (digit < 0) digit += 10;
+	loc = glGetUniformLocation(shader, "uDigitTexture");
+	if (loc != -1) glUniform1i(loc, digit);
 
+	// RGB, IVE, NUM -> 텍스처 유닛 10, 11, 12
+	glActiveTexture(GL_TEXTURE0 + 10);
+	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+	loc = glGetUniformLocation(shader, "u_RGBTexture");
+	if (loc != -1) glUniform1i(loc, 10);
+
+	glActiveTexture(GL_TEXTURE0 + 11);
+	glBindTexture(GL_TEXTURE_2D, m_IVETexture);
+	loc = glGetUniformLocation(shader, "u_IVETexture");
+	if (loc != -1) glUniform1i(loc, 11);
+
+	glActiveTexture(GL_TEXTURE0 + 12);
+	glBindTexture(GL_TEXTURE_2D, m_NUMTexture);
+	loc = glGetUniformLocation(shader, "u_NUMTexture");
+	if (loc != -1) glUniform1i(loc, 12);
+
+	// 정점 어트리뷰트 설정 (기존과 동일)
 	int stride = sizeof(float) * 3;
 
 	GLuint attribPosition = glGetAttribLocation(shader, "a_Position");
 	glEnableVertexAttribArray(attribPosition);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOFS);
-	glVertexAttribPointer(attribPosition, 3, 
-		GL_FLOAT, GL_FALSE, 
+	glVertexAttribPointer(attribPosition, 3,
+		GL_FLOAT, GL_FALSE,
 		stride, 0);
 
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glDisableVertexAttribArray(attribPosition);
+
+	// 바인딩 정리 (선택 사항) — 0..12 유닛 언바인드
+	for (int i = 0; i <= 12; ++i) {
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	glActiveTexture(GL_TEXTURE0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
+{
+
+	GLuint shader = m_TexShader;
+	//Program select
+	glUseProgram(shader);
+
+	int uTex = glGetUniformLocation(shader, "u_TexID");
+	glUniform1i(uTex, 0);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+
+	int aPos = glGetAttribLocation(shader, "a_Pos");
+	int aTex = glGetAttribLocation(shader, "a_Tex");
+	glEnableVertexAttribArray(aPos);
+	glEnableVertexAttribArray(aTex);
+
+	glBindBuffer(GL_ARRAY_BUFFER, m_TexVBO);
+	glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 5, 0);
+	glVertexAttribPointer(aTex, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
+
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+
+	glDisableVertexAttribArray(aPos);
+	glDisableVertexAttribArray(aTex);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -838,7 +972,8 @@ void Renderer::AddTime()
 
 void Renderer::GetGLPosition(float x, float y, float* newX, float* newY)
 {
-	*newX = x * 2.f / m_WindowSizeX;
-	*newY = y * 2.f / m_WindowSizeY;
+	// 윈도우 사이즈를 float으로 캐스팅하여 안전하게 계산
+	*newX = x * 2.0f / static_cast<float>(m_WindowSizeX);
+	*newY = y * 2.0f / static_cast<float>(m_WindowSizeY);
 }
 
