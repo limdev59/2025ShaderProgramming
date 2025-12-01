@@ -1,7 +1,9 @@
 #version 330
 layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 FragColor1;
 
 uniform float u_Time;
+uniform sampler2D u_DigitTexture;
 uniform sampler2D u_RGBTexture;
 in vec2 v_UV;
 
@@ -56,54 +58,73 @@ void Brick_Vertical(){
 }
 
 void Brick_Horizontal_AI() {
-    // 1. 지역 변수 newUV에 v_UV 값을 복사
+    // 1. ???? ???? newUV?? v_UV ???? ????
     vec2 newUV = v_UV;
 
-    // [추가] 좌우 꿀렁임(Wave) 효과 적용
-    // 수식: newX = oldX + sin(y * 주파수 + 시간 * 속도) * 진폭
-    float waveAmp = 0.05;   // 진폭 (꿀렁이는 정도, 클수록 많이 휘어짐)
-    float waveFreq = 10.0;  // 주파수 (세로 방향으로 물결이 몇 번 치는지)
-    float waveSpeed = 5.0;  // 속도 (물결이 흐르는 빠르기)
+    // [???] ?쩔? ?????(Wave) ??? ????
+    // ????: newX = oldX + sin(y * ????? + ?챨? * ???) * ????
+    float waveAmp = 0.05;   // ???? (?????? ????, ????? ???? ?????)
+    float waveFreq = 10.0;  // ????? (???? ???????? ?????? ?? ?? ?????)
+    float waveSpeed = 5.0;  // ??? (?????? ???? ??????)
 
-    // Y좌표에 따라 X좌표를 흔들어 줌
+    // Y????? ???? X????? ???? ??
     newUV.x += sin(newUV.y * waveFreq + u_Time * waveSpeed) * waveAmp;
 
-    // 2. 기존 설정 (3x3 타일, 오프셋, 마진)
+    // 2. ???? ???? (3x3 ???, ??????, ????)
     float rCnt = 3.0;
     float sAmt = 0.5;
     float margin = 0.05;
     vec4 gapColor = vec4(0.3, 0.3, 0.3, 1.0);
 
-    // 3. x 좌표 계산 (변경된 newUV 사용)
+    // 3. x ??? ??? (????? newUV ???)
     float a = fract(newUV.x * rCnt);
     float b = floor(newUV.y * rCnt + 1.0);
     float x = a + (b * sAmt);
 
-    // 4. y 좌표 계산
+    // 4. y ??? ???
     float y = fract(newUV.y * rCnt);
 
-    // 5. 마진(줄눈) 마스크 계산
+    // 5. ????(???) ????? ???
     float maskX = step(margin, fract(x)) * step(fract(x), 1.0 - margin);
     float maskY = step(margin, y) * step(y, 1.0 - margin);
     float isBrick = maskX * maskY;
 
-    // 6. 텍스처 샘플링 및 색상 혼합
+    // 6. ???? ???첩? ?? ???? ???
     vec4 textureColor = texture(u_RGBTexture, vec2(x, y));
     FragColor = mix(gapColor, textureColor, isBrick);
 }
 
+void Digit_Num()
+{
+    int digit = int(u_Time * 10)%10;
 
-//void DigitNum(){
-//    vec2 newUV = vec2(v_UV.x, v_UV.y);
-//    int digit = int(u_Time)%10;
-//    int titleIndex = (digit+9)%10;
-//
-//    float  offX= float(titleIndex%5)/5;
-//    float  offY= float(titleIndex%2)/2;
-//
-//    FragColor = newColor;
-//}
+    int titleIndex = (digit + 9) % 10;
+
+    float offX = float(titleIndex % 5) / 5;
+    float offY = float(titleIndex / 5) / 2;
+
+    float tx = v_UV.x / 5 + offX;
+    float ty = v_UV.y / 2 + offY;
+    FragColor = texture(u_DigitTexture, vec2(tx, ty));
+}
+
+void Lens(){
+
+  int digit = int(u_Time * 10)%10;
+
+    int titleIndex = (digit + 9) % 10;
+
+    float offX = float(titleIndex % 5) / 5;
+    float offY = float(titleIndex / 5) / 2;
+
+    float tx = v_UV.x / 5 + offX;
+    float ty = v_UV.y / 2 + offY;
+    FragColor = texture(u_DigitTexture, vec2(tx, ty));
+}
+
 void main()
 {
-    Brick_Horizontal_AI();
+    Digit_Num();
+
+    FragColor1 = vec4(1,0,0,1);
 }

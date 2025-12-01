@@ -491,8 +491,8 @@ void Renderer::CreateFBOs()
 {
 	{
 		GLuint textureId;
-		glGenTextures(1, &m_RT0);
-		glBindTexture(GL_TEXTURE_2D, m_RT0);
+		glGenTextures(1, &m_RT0_0);
+		glBindTexture(GL_TEXTURE_2D, m_RT0_0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -510,7 +510,7 @@ void Renderer::CreateFBOs()
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_FBO0);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_2D, m_RT0, 0);
+			GL_TEXTURE_2D, m_RT0_0, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 			GL_RENDERBUFFER, depthBuffer);
 
@@ -522,8 +522,8 @@ void Renderer::CreateFBOs()
 	}
 	{
 		GLuint textureId;
-		glGenTextures(1, &m_RT1);
-		glBindTexture(GL_TEXTURE_2D, m_RT1);
+		glGenTextures(1, &m_RT1_0);
+		glBindTexture(GL_TEXTURE_2D, m_RT1_0);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -541,7 +541,7 @@ void Renderer::CreateFBOs()
 
 		glBindFramebuffer(GL_FRAMEBUFFER, m_FBO1);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-			GL_TEXTURE_2D, m_RT1, 0);
+			GL_TEXTURE_2D, m_RT1_0, 0);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
 			GL_RENDERBUFFER, depthBuffer);
 
@@ -884,7 +884,7 @@ void Renderer::DrawGridMesh()
 	// --- Vertex Attribute 설정 ---
 	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
 
-	int stride = sizeof(float) * 3; 
+	int stride = sizeof(float) * 8; // 3(Pos) + 3(Normal) + 2(UV) = 8
 
 	// a_Position (location = 0)
 	GLuint aPos = glGetAttribLocation(shader, "a_Position");
@@ -906,13 +906,49 @@ void Renderer::DrawFS()
 	GLuint shader = m_FSShader;
 	glUseProgram(shader);
 
+	GLenum DrawBuffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, DrawBuffers);
 
 	int uTimeLoc = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(uTimeLoc, m_Time);
 
+	int uTextureLoc = glGetUniformLocation(shader, "u_RGBTexture");
+	glUniform1i(uTextureLoc, 11);
+
+	int uDigitTextureLoc = glGetUniformLocation(shader, "u_DigitTexture");
+	glUniform1i(uDigitTextureLoc, (int)floor(m_Time) % 10);
+
+
+	glBindTexture(GL_TEXTURE_2D, m_IVETexture);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_0Texture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, m_1Texture);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, m_2Texture);
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, m_3Texture);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, m_4Texture);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, m_5Texture);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, m_6Texture);
+	glActiveTexture(GL_TEXTURE7);
+	glBindTexture(GL_TEXTURE_2D, m_7Texture);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, m_8Texture);
+	glActiveTexture(GL_TEXTURE9);
+	glBindTexture(GL_TEXTURE_2D, m_9Texture);
+	glActiveTexture(GL_TEXTURE10);
+	glBindTexture(GL_TEXTURE_2D, m_NUMTexture);
+
+	glActiveTexture(GL_TEXTURE15);
+	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+	glActiveTexture(GL_TEXTURE16);
+
 	GLint loc;
 
-	// 숫자 텍스처 0~9 -> 텍스처 유닛 GL_TEXTURE0 .. GL_TEXTURE9
 	GLuint digitTex[10] = {
 		m_0Texture, m_1Texture, m_2Texture, m_3Texture, m_4Texture,
 		m_5Texture, m_6Texture, m_7Texture, m_8Texture, m_9Texture
@@ -928,7 +964,6 @@ void Renderer::DrawFS()
 		if (loc != -1) glUniform1i(loc, i);
 	}
 
-	// uDigitTexture에 m_Time % 10 전달 (정수)
 	int digit = ((int)m_Time) % 10;
 	if (digit < 0) digit += 10;
 	loc = glGetUniformLocation(shader, "uDigitTexture");
@@ -1011,8 +1046,8 @@ void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
 
 void Renderer::DrawDebugTexture()
 {
-	DrawTexture(-0.8, -0.8, 0.2, 0.2, m_RT0);
-	DrawTexture(-0.4, -0.8, 0.2, 0.2, m_RT1);
+	DrawTexture(-0.8, -0.8, 0.2, 0.2, m_RT0_0);
+	DrawTexture(-0.4, -0.8, 0.2, 0.2, m_RT1_0);
 }
 
 void Renderer::DrawFBOs()
@@ -1020,7 +1055,7 @@ void Renderer::DrawFBOs()
 	// set FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	glViewport(0, 0, 512, 512);
 	// Draw
 	DrawParticle();
 
@@ -1028,9 +1063,10 @@ void Renderer::DrawFBOs()
 	// set FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, 512, 512);
 
 	// Draw
-	DrawGridMesh();
+	DrawFS();
 
 
 	// Restores FBO
