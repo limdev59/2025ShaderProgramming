@@ -3,11 +3,9 @@
 
 in vec3 a_Position;
 out vec4 v_Color;
-out vec2 v_UV;
 
 uniform float u_Time;
 uniform vec4 u_Points[MAX_POINTS];
-uniform vec2 u_resolution;
 
 const float c_PI = 3.141592;
 
@@ -24,8 +22,8 @@ void flag()
     newPosition.xy *= vec2(2,0.5);
 
     gl_Position = newPosition;
-    v_UV.x = (newPosition.x + 1)/2;
-	v_UV.y = (1 - newPosition.y)/2;
+//    v_UV.x = (newPosition.x + 1)/2;
+//	v_UV.y = (1 - newPosition.y)/2;
     v_Color = vec4(newColor);
 }
 
@@ -85,7 +83,7 @@ void RainDrop()
 
 void main()
 {
-    flag();
+    RainDrop();
     // Wave();
     // RainDrop();
 }

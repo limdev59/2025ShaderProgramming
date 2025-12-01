@@ -55,23 +55,18 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_RampColors[2][0] = 0.9f; m_RampColors[2][1] = 1.0f; m_RampColors[2][2] = 0.2f; // Yellow
 	m_RampColors[3][0] = 1.0f; m_RampColors[3][1] = 1.0f; m_RampColors[3][2] = 1.0f; // White
 
-
 	//셰이더 컴파일
 	CompileAllShaderPrograms();
 
 	//Create VBOs
 	CreateVertexBufferObjects();
 
-
 	CreateVertexBufferObjects();
 
-
-
 	GenerateParticles(10000);
+
 	CreateGridMesh(100, 100);
 
-	
-	
 	m_0Texture = CreatePngTexture("./0.png", GL_NEAREST);
 	m_1Texture = CreatePngTexture("./1.png", GL_NEAREST);
 	m_2Texture = CreatePngTexture("./2.png", GL_NEAREST);
@@ -86,6 +81,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_IVETexture = CreatePngTexture("./cj.png", GL_NEAREST);
 	m_NUMTexture = CreatePngTexture("./numbers.png", GL_NEAREST);
 
+	CreateFBOs();
 
 	int index = 0;
 	for (int i{}; i < 100; ++i) {
@@ -119,12 +115,12 @@ void Renderer::CompileAllShaderPrograms()
 
 	m_ParticleShader = CompileShaders(
 		"./Shaders/Particle.vs",
-		"./Shaders/Particle.fs");	
-	
+		"./Shaders/Particle.fs");
+
 	m_GridMeshVertexShader = CompileShaders(
 		"./Shaders/GridMesh.vs",
-		"./Shaders/GridMesh.fs");	
-	
+		"./Shaders/GridMesh.fs");
+
 	m_FullScreenShader = CompileShaders(
 		"./Shaders/FullScreen.vs",
 		"./Shaders/FullScreen.fs");
@@ -491,6 +487,75 @@ void Renderer::GenerateParticles(int numParticle)
 	m_VBOParticleVertexCount = totalVerticesCount;
 }
 
+void Renderer::CreateFBOs()
+{
+	{
+		GLuint textureId;
+		glGenTextures(1, &m_RT0);
+		glBindTexture(GL_TEXTURE_2D, m_RT0);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+		GLuint depthBuffer;
+		glGenRenderbuffers(1, &depthBuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512, 512);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		glGenFramebuffers(1, &m_FBO0);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_FBO0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, m_RT0, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+			GL_RENDERBUFFER, depthBuffer);
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			assert(0);
+		}
+	}
+	{
+		GLuint textureId;
+		glGenTextures(1, &m_RT1);
+		glBindTexture(GL_TEXTURE_2D, m_RT1);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 512, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+		GLuint depthBuffer;
+		glGenRenderbuffers(1, &depthBuffer);
+		glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 512, 512);
+		glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+		glGenFramebuffers(1, &m_FBO1);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_FBO1);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+			GL_TEXTURE_2D, m_RT1, 0);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+			GL_RENDERBUFFER, depthBuffer);
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE)
+		{
+			assert(1);
+		}
+	}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
 void Renderer::AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType)
 {
 	//쉐이더 오브젝트 생성
@@ -791,7 +856,7 @@ void Renderer::DrawFullScreenColor(float r, float g, float b, float a)
 	int attribPosition = glGetAttribLocation(shader, "a_Position");
 	glEnableVertexAttribArray(attribPosition);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOFullScreen);
-	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, 
+	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE,
 		sizeof(float) * 3, 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -811,51 +876,26 @@ void Renderer::DrawGridMesh()
 	// --- Uniform 변수 전달 ---
 	int uTimeLoc = glGetUniformLocation(shader, "u_Time");
 	glUniform1f(uTimeLoc, m_Time);
-	
+
 	int uPointsLoc = glGetUniformLocation(shader, "u_Points");
 	glUniform4fv(uPointsLoc, 100, m_Points);
 
-	int uResolutionLoc = glGetUniformLocation(shader, "u_resolution");
-	glUniform2f(uResolutionLoc, (float)m_WindowSizeX, (float)m_WindowSizeY);
-
-	int uTextureLoc = glGetUniformLocation(shader, "u_Texture");
-	glUniform1f(uTextureLoc, 0);
-
-	glBindTexture(GL_TEXTURE, m_RGBTexture);
 
 	// --- Vertex Attribute 설정 ---
 	glBindBuffer(GL_ARRAY_BUFFER, m_GridMeshVBO);
 
-	int stride = sizeof(float) * 8; // 정점 하나당 8개의 float (pos, norm, uv)
+	int stride = sizeof(float) * 3; 
 
 	// a_Position (location = 0)
-	GLuint attribPosition = glGetAttribLocation(shader, "a_Position");
-	glEnableVertexAttribArray(attribPosition);
-	glVertexAttribPointer(attribPosition, 3, GL_FLOAT, GL_FALSE, stride, 0);
+	GLuint aPos = glGetAttribLocation(shader, "a_Position");
+	glEnableVertexAttribArray(aPos);
+	glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE, stride, 0);
 
-	// a_Normal (location = 1)
-	GLuint attribNormal = glGetAttribLocation(shader, "a_Normal");
-	glEnableVertexAttribArray(attribNormal);
-	glVertexAttribPointer(attribNormal, 3, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 3));
-
-	// a_UV (location = 2)
-	GLuint attribUV = glGetAttribLocation(shader, "a_UV");
-	glEnableVertexAttribArray(attribUV);
-	glVertexAttribPointer(attribUV, 2, GL_FLOAT, GL_FALSE, stride, (GLvoid*)(sizeof(float) * 6));
-
-
-	int rampColorsLoc = glGetUniformLocation(shader, "u_ramp_colors");
-	glUniform3fv(rampColorsLoc, RAMP_SIZE, &m_RampColors[0][0]);
-
-	int rampPositionsLoc = glGetUniformLocation(shader, "u_ramp_positions");
-	glUniform1fv(rampPositionsLoc, RAMP_SIZE, m_RampPositions);
 
 
 	glDrawArrays(GL_TRIANGLES, 0, m_GridMeshVertexCount);
 
-	glDisableVertexAttribArray(attribPosition);
-	glDisableVertexAttribArray(attribNormal);
-	glDisableVertexAttribArray(attribUV);
+	glDisableVertexAttribArray(aPos);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -937,16 +977,20 @@ void Renderer::DrawFS()
 
 void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
 {
-
+	//sx, sy --???? ratio
 	GLuint shader = m_TexShader;
 	//Program select
 	glUseProgram(shader);
 
 	int uTex = glGetUniformLocation(shader, "u_TexID");
 	glUniform1i(uTex, 0);
+	int uSize = glGetUniformLocation(shader, "u_Size");
+	glUniform2f(uSize, sx, sy);
+	int uTran = glGetUniformLocation(shader, "u_Tran");
+	glUniform2f(uTran, x, y);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, m_RGBTexture);
+	glBindTexture(GL_TEXTURE_2D, TexID);
 
 	int aPos = glGetAttribLocation(shader, "a_Pos");
 	int aTex = glGetAttribLocation(shader, "a_Tex");
@@ -954,7 +998,7 @@ void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
 	glEnableVertexAttribArray(aTex);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_TexVBO);
-	glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 5, 0);
+	glVertexAttribPointer(aPos, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
 	glVertexAttribPointer(aTex, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5, (GLvoid*)(sizeof(float) * 3));
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -962,6 +1006,34 @@ void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
 	glDisableVertexAttribArray(aPos);
 	glDisableVertexAttribArray(aTex);
 
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::DrawDebugTexture()
+{
+	DrawTexture(-0.8, -0.8, 0.2, 0.2, m_RT0);
+	DrawTexture(-0.4, -0.8, 0.2, 0.2, m_RT1);
+}
+
+void Renderer::DrawFBOs()
+{
+	// set FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Draw
+	DrawParticle();
+
+
+	// set FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Draw
+	DrawGridMesh();
+
+
+	// Restores FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
