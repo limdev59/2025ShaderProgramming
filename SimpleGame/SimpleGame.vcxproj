@@ -188,6 +188,14 @@
     <None Include="Shaders\Texture.fs" />
     <None Include="Shaders\Texture.vs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Shaders\Blur.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shaders\BlurHorizontal.fs" />
+    <Compile Include="Shaders\BlurVertical.fs" />
+    <Compile Include="Shaders\MergeBloom.fs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

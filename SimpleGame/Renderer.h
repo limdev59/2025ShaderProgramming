@@ -19,12 +19,13 @@ public:
 	void ReloadAllShaderPrograms();
 	void DrawSolidRect(float x, float y, float z, float size, float r, float g, float b, float a);
 	void DrawTest();
+	void DrawBloomParticle();
 	void DrawParticle();
 	void DrawGridMesh();
 	void AddTime();
 	void DrawFullScreenColor(float r, float g, float b, float a);
 	void DrawFS();
-	void DrawTexture(float x, float y, float sx, float sy, GLuint TexID);
+	void DrawTexture(float x, float y, float sx, float sy, GLuint TexID, GLuint TexID1, GLuint method);
 	void DrawDebugTexture();
 	void DrawFBOs();
 
@@ -82,6 +83,7 @@ private:
 	GLuint m_RGBTexture = 0;
 	GLuint m_IVETexture = 0;
 	GLuint m_NUMTexture = 0;
+	GLuint m_ParticleTexture = 0;
 	
 	GLuint m_0Texture = 0;
 	GLuint m_1Texture = 0;
@@ -113,10 +115,21 @@ private:
 	GLuint m_FBO4 = 0;
 	
 	
-	GLuint m_HDRRT0_0 = 0;
-	GLuint m_HDRRT0_1 = 0;
-	GLuint m_HDRFBO0_0 = 0;
-	GLuint m_HDRFBO0_1 = 0;
+	GLuint m_HDRFBO = 0;
+	GLuint m_HDRLowTexture = 0;  // 일반 화면 저장 [cite: 19]
+	GLuint m_HDRHighTexture = 0; // 밝은 빛 저장 [cite: 20]
+
+	// [Ping-Pong Blur] 블러를 번갈아가며 하기 위한 FBO 2개 [cite: 72]
+	GLuint m_PingpongFBO[2] = {0, 0};
+	GLuint m_PingpongTexture[2] = {0, 0};
+
+	// 쉐이더 ID
+	GLuint m_GaussianBlurHShader = 0;
+	GLuint m_GaussianBlurVShader = 0;
+	GLuint m_DrawMergeTextureShader = 0;
+	
+	void DrawGaussianBlur(GLuint texID, GLuint targetFBOID, GLuint shader);
+	void DrawMergeBloomTexture(GLuint sceneTexID, GLuint bloomTexID, float exposure);
 };
 
 

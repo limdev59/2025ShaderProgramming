@@ -80,6 +80,7 @@ void Renderer::Initialize(int windowSizeX, int windowSizeY)
 	m_RGBTexture = CreatePngTexture("./rgb.png", GL_NEAREST);
 	m_IVETexture = CreatePngTexture("./cj.png", GL_NEAREST);
 	m_NUMTexture = CreatePngTexture("./numbers.png", GL_NEAREST);
+	m_ParticleTexture = CreatePngTexture("./particles.png", GL_LINEAR);
 
 	CreateFBOs();
 
@@ -132,6 +133,11 @@ void Renderer::CompileAllShaderPrograms()
 	m_TexShader = CompileShaders(
 		"./Shaders/Texture.vs",
 		"./Shaders/Texture.fs");
+	
+	// 기존 쉐이더 컴파일 아래에 추가
+	m_GaussianBlurHShader = CompileShaders("./Shaders/Blur.vs", "./Shaders/BlurHorizontal.fs");
+	m_GaussianBlurVShader = CompileShaders("./Shaders/Blur.vs", "./Shaders/BlurVertical.fs");
+	m_DrawMergeTextureShader = CompileShaders("./Shaders/Blur.vs", "./Shaders/MergeBloom.fs");
 }
 
 void Renderer::DeleteAllShaderPrograms()
@@ -334,7 +340,7 @@ void Renderer::CreateGridMesh(int x, int y)
 
 void Renderer::GenerateParticles(int numParticle)
 {
-	int floatCountPervertex = 3 + 1 + 4 + 1 + 3 + 1 + 1 + 1; // x, y, z, value, r, g, b, a, sTime, Velocity, Lifetime, mass
+	int floatCountPervertex = 3 + 1 + 4 + 1 + 3 + 1 + 1 + 1 + 2; // x, y, z, value, r, g, b, a, sTime, Velocity, Lifetime, mass
 	int verticesCountPerParticle = 6;
 	int floatCountPerParticle = floatCountPervertex * verticesCountPerParticle;
 	int totalVerticesCount = numParticle * verticesCountPerParticle;
@@ -351,14 +357,15 @@ void Renderer::GenerateParticles(int numParticle)
 		float value;
 		value = (float)rand() / (float)RAND_MAX;
 
+		float intensity = 4.0f;
 		float r, g, b, a;
-		r = (float)rand() / (float)RAND_MAX;
-		g = (float)rand() / (float)RAND_MAX;
-		b = (float)rand() / (float)RAND_MAX;
+		r = (float)rand() / (float)RAND_MAX * intensity;
+		g = (float)rand() / (float)RAND_MAX * intensity;
+		b = (float)rand() / (float)RAND_MAX * intensity;
 		a = (float)rand() / (float)RAND_MAX;
 
 		float size;
-		size = ((float)rand() / (float)RAND_MAX) * 0.01f;
+		size = 0.05f + ((float)rand() / (float)RAND_MAX) * 0.05f;
 
 		float sTime;
 		sTime = ((float)rand() / (float)RAND_MAX) * 2.0f;
@@ -379,111 +386,78 @@ void Renderer::GenerateParticles(int numParticle)
 
 		int index = i * floatCountPervertex * verticesCountPerParticle;
 
-		vertices[index++] = x - size;		// v1
-		vertices[index++] = y - size;
-		vertices[index++] = z;
-		vertices[index++] = value;
-		vertices[index++] = r;
-		vertices[index++] = g;
-		vertices[index++] = b;
-		vertices[index++] = a;
-		vertices[index++] = sTime;
-		vertices[index++] = vx;
-		vertices[index++] = vy;
-		vertices[index++] = vz;
-		vertices[index++] = lifeTime;
-		vertices[index++] = mass;
-		vertices[index++] = period;
+		// V1 (Left-Bottom)
+        vertices[index++] = x - size; vertices[index++] = y - size; vertices[index++] = z;
+        vertices[index++] = value;
+        vertices[index++] = r; vertices[index++] = g; vertices[index++] = b; vertices[index++] = a;
+        vertices[index++] = sTime;
+        vertices[index++] = vx; vertices[index++] = vy; vertices[index++] = vz;
+        vertices[index++] = lifeTime;
+        vertices[index++] = mass;
+        vertices[index++] = period;
+        vertices[index++] = 0.0f; vertices[index++] = 0.0f; // [추가] UV (0, 0)
 
-		vertices[index++] = x + size;		// v2
-		vertices[index++] = y - size;
-		vertices[index++] = z;
-		vertices[index++] = value;
-		vertices[index++] = r;
-		vertices[index++] = g;
-		vertices[index++] = b;
-		vertices[index++] = a;
-		vertices[index++] = sTime;
-		vertices[index++] = vx;
-		vertices[index++] = vy;
-		vertices[index++] = vz;
-		vertices[index++] = lifeTime;
-		vertices[index++] = mass;
-		vertices[index++] = period;
+        // V2 (Right-Bottom)
+        vertices[index++] = x + size; vertices[index++] = y - size; vertices[index++] = z;
+        vertices[index++] = value;
+        vertices[index++] = r; vertices[index++] = g; vertices[index++] = b; vertices[index++] = a;
+        vertices[index++] = sTime;
+        vertices[index++] = vx; vertices[index++] = vy; vertices[index++] = vz;
+        vertices[index++] = lifeTime;
+        vertices[index++] = mass;
+        vertices[index++] = period;
+        vertices[index++] = 1.0f; vertices[index++] = 0.0f; // [추가] UV (1, 0)
 
-		vertices[index++] = x + size;		// v3
-		vertices[index++] = y + size;
-		vertices[index++] = z;
-		vertices[index++] = value;
-		vertices[index++] = r;
-		vertices[index++] = g;
-		vertices[index++] = b;
-		vertices[index++] = a;
-		vertices[index++] = sTime;
-		vertices[index++] = vx;
-		vertices[index++] = vy;
-		vertices[index++] = vz;
-		vertices[index++] = lifeTime;
-		vertices[index++] = mass;
-		vertices[index++] = period;
+        // V3 (Right-Top)
+        vertices[index++] = x + size; vertices[index++] = y + size; vertices[index++] = z;
+        vertices[index++] = value;
+        vertices[index++] = r; vertices[index++] = g; vertices[index++] = b; vertices[index++] = a;
+        vertices[index++] = sTime;
+        vertices[index++] = vx; vertices[index++] = vy; vertices[index++] = vz;
+        vertices[index++] = lifeTime;
+        vertices[index++] = mass;
+        vertices[index++] = period;
+        vertices[index++] = 1.0f; vertices[index++] = 1.0f; // [추가] UV (1, 1)
 
-		vertices[index++] = x - size;		// v4
-		vertices[index++] = y + size;
-		vertices[index++] = z;
-		vertices[index++] = value;
-		vertices[index++] = r;
-		vertices[index++] = g;
-		vertices[index++] = b;
-		vertices[index++] = a;
-		vertices[index++] = sTime;
-		vertices[index++] = vx;
-		vertices[index++] = vy;
-		vertices[index++] = vz;
-		vertices[index++] = lifeTime;
-		vertices[index++] = mass;
-		vertices[index++] = period;
+        // V4 (Left-Top)
+        vertices[index++] = x - size; vertices[index++] = y + size; vertices[index++] = z;
+        vertices[index++] = value;
+        vertices[index++] = r; vertices[index++] = g; vertices[index++] = b; vertices[index++] = a;
+        vertices[index++] = sTime;
+        vertices[index++] = vx; vertices[index++] = vy; vertices[index++] = vz;
+        vertices[index++] = lifeTime;
+        vertices[index++] = mass;
+        vertices[index++] = period;
+        vertices[index++] = 0.0f; vertices[index++] = 1.0f; // [추가] UV (0, 1)
 
-		vertices[index++] = x - size;		// v5
-		vertices[index++] = y - size;
-		vertices[index++] = z;
-		vertices[index++] = value;
-		vertices[index++] = r;
-		vertices[index++] = g;
-		vertices[index++] = b;
-		vertices[index++] = a;
-		vertices[index++] = sTime;
-		vertices[index++] = vx;
-		vertices[index++] = vy;
-		vertices[index++] = vz;
-		vertices[index++] = lifeTime;
-		vertices[index++] = mass;
-		vertices[index++] = period;
+        // V5 (Left-Bottom) - V1과 동일
+        vertices[index++] = x - size; vertices[index++] = y - size; vertices[index++] = z;
+        vertices[index++] = value;
+        vertices[index++] = r; vertices[index++] = g; vertices[index++] = b; vertices[index++] = a;
+        vertices[index++] = sTime;
+        vertices[index++] = vx; vertices[index++] = vy; vertices[index++] = vz;
+        vertices[index++] = lifeTime;
+        vertices[index++] = mass;
+        vertices[index++] = period;
+        vertices[index++] = 0.0f; vertices[index++] = 0.0f; // [추가] UV (0, 0)
 
-		vertices[index++] = x + size;		// v6
-		vertices[index++] = y + size;
-		vertices[index++] = z;
-		vertices[index++] = value;
-		vertices[index++] = r;
-		vertices[index++] = g;
-		vertices[index++] = b;
-		vertices[index++] = a;
-		vertices[index++] = sTime;
-		vertices[index++] = vx;
-		vertices[index++] = vy;
-		vertices[index++] = vz;
-		vertices[index++] = lifeTime;
-		vertices[index++] = mass;
-		vertices[index++] = period;
-
+        // V6 (Right-Top) - V3와 동일
+        vertices[index++] = x + size; vertices[index++] = y + size; vertices[index++] = z;
+        vertices[index++] = value;
+        vertices[index++] = r; vertices[index++] = g; vertices[index++] = b; vertices[index++] = a;
+        vertices[index++] = sTime;
+        vertices[index++] = vx; vertices[index++] = vy; vertices[index++] = vz;
+        vertices[index++] = lifeTime;
+        vertices[index++] = mass;
+        vertices[index++] = period;
+        vertices[index++] = 1.0f; vertices[index++] = 1.0f;
 	}
 
 	glGenBuffers(1, &m_VBOParticle);
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOParticle);
-
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * totalFloatCount, vertices, GL_STATIC_DRAW);
 
 	delete[] vertices;
-
 	m_VBOParticleVertexCount = totalVerticesCount;
 }
 
@@ -552,7 +526,48 @@ void Renderer::CreateFBOs()
 		}
 	}
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glGenFramebuffers(1, &m_HDRFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_HDRFBO);
+
+    // [Attachment 1] High Texture (밝은 부분) - 부동소수점(GL_RGBA16F) 사용 필수 [cite: 26]
+    glGenTextures(1, &m_HDRHighTexture);
+    glBindTexture(GL_TEXTURE_2D, m_HDRHighTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_WindowSizeX, m_WindowSizeY, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // [cite: 29]
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // [Attachment 0] Low Texture (일반 부분) [cite: 31]
+    glGenTextures(1, &m_HDRLowTexture);
+    glBindTexture(GL_TEXTURE_2D, m_HDRLowTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_WindowSizeX, m_WindowSizeY, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    // 두 개의 텍스처를 FBO에 붙임 [cite: 38, 39]
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_HDRLowTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_HDRHighTexture, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cout << "HDR FBO Failed" << std::endl;
+
+    // 2. Ping-Pong FBO (블러용) [cite: 76]
+    glGenFramebuffers(2, m_PingpongFBO);
+    glGenTextures(2, m_PingpongTexture);
+    for (int i = 0; i < 2; i++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_PingpongFBO[i]);
+        glBindTexture(GL_TEXTURE_2D, m_PingpongTexture[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_WindowSizeX, m_WindowSizeY, 0, GL_RGBA, GL_FLOAT, NULL);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_PingpongTexture[i], 0);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
@@ -740,8 +755,12 @@ void Renderer::DrawTest()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::DrawParticle()
+void Renderer::DrawBloomParticle()
+{
+	
+}
 
+void Renderer::DrawParticle()
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -753,6 +772,11 @@ void Renderer::DrawParticle()
 
 	int uForceLoc = glGetUniformLocation(shader, "u_Force");
 	glUniform3f(uForceLoc, std::sin(m_Time), 0, 0);
+	
+	int uTexLoc = glGetUniformLocation(shader, "u_Texture");
+	glUniform1i(uTexLoc, 0); // 0번 슬롯 사용
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_ParticleTexture);
 
 	int aPosLoc = glGetAttribLocation(shader, "a_Position");
 	int aValueLoc = glGetAttribLocation(shader, "a_Value");
@@ -763,7 +787,9 @@ void Renderer::DrawParticle()
 	int aMassLoc = glGetAttribLocation(shader, "a_Mass");
 	int aPeriodLoc = glGetAttribLocation(shader, "a_Period");
 
-	int stride = sizeof(float) * 15;
+	int aUVLoc = glGetAttribLocation(shader, "a_UV");
+	
+	int stride = sizeof(float) * 17;
 
 	glEnableVertexAttribArray(aPosLoc);
 	glEnableVertexAttribArray(aValueLoc);
@@ -773,8 +799,10 @@ void Renderer::DrawParticle()
 	glEnableVertexAttribArray(aLifeTimeLoc);
 	glEnableVertexAttribArray(aMassLoc);
 	glEnableVertexAttribArray(aPeriodLoc);
+	glEnableVertexAttribArray(aUVLoc);
 
 	glBindBuffer(GL_ARRAY_BUFFER, m_VBOParticle);
+
 	glVertexAttribPointer(aPosLoc,
 		3,
 		GL_FLOAT, GL_FALSE,
@@ -825,7 +853,12 @@ void Renderer::DrawParticle()
 		GL_FLOAT, GL_FALSE,
 		stride,
 		(GLvoid*)(sizeof(float) * 14));
-
+	
+	glVertexAttribPointer(aUVLoc,
+		2,
+		GL_FLOAT, GL_FALSE,
+		stride,
+		(GLvoid*)(sizeof(float) * 15));
 	glDrawArrays(GL_TRIANGLES, 0, m_VBOParticleVertexCount);
 
 	glDisableVertexAttribArray(aPosLoc);
@@ -837,6 +870,7 @@ void Renderer::DrawParticle()
 	glDisableVertexAttribArray(aLifeTimeLoc);
 	glDisableVertexAttribArray(aMassLoc);
 	glDisableVertexAttribArray(aPeriodLoc);
+	
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glDisable(GL_BLEND);
@@ -1010,7 +1044,8 @@ void Renderer::DrawFS()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
+
+void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID, GLuint TexID1, GLuint method)
 {
 	//sx, sy --???? ratio
 	GLuint shader = m_TexShader;
@@ -1046,33 +1081,59 @@ void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
 
 void Renderer::DrawDebugTexture()
 {
-	// 왼쪽 절반: Particle 결과 (m_RT0_0)
-	// 위치(-0.5, 0), 크기(0.5, 1.0) -> 화면 좌측 채움
-	DrawTexture(-0.5f, 0.0f, 0.5f, 0.5f, m_RT0_0);
-
-	// 오른쪽 절반: FS 쉐이더 결과 (m_RT1_0)
-	// 위치(0.5, 0), 크기(0.5, 1.0) -> 화면 우측 채움
-	DrawTexture(0.5f, 0.0f, 0.5f, 0.5f, m_RT1_0);
+	// [왼쪽] 일반 영상 (m_HDRLowTexture)
+	// 위치(-0.5, 0), 크기(0.5, 1.0) -> 왼쪽 절반 채움
+	DrawTexture(-0.5f, 0.0f, 0.5f, 0.5f, m_HDRLowTexture,0,0);
+	
+	DrawTexture(0.5f, 0.0f, 0.5f, 0.5f, m_PingpongTexture[0],0,0);
 }
 void Renderer::DrawFBOs()
 {
-	// 1. FBO0 (Particle 씬) 렌더링
-	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO0);
+	// 1. Scene 렌더링 (파티클 그리기)
+	glBindFramebuffer(GL_FRAMEBUFFER, m_HDRFBO);
+	GLenum drawbuffers[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, drawbuffers);
+    
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, 512, 512); // 텍스처 크기에 맞춤
-	DrawParticle();
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
 
-	// 2. FBO1 (FS 쉐이더 씬) 렌더링
-	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, 512, 512); // 텍스처 크기에 맞춤
-	DrawFS();
+	DrawParticle(); 
 
-	// 3. 기본 프레임버퍼로 복귀
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// 중요: 뷰포트를 다시 윈도우 크기로 되돌림 (화면에 그리기 위해)
+	// 2. Blur 처리 (Ping-Pong)
+	bool horizontal = true;
+	int amount = 10; 
+
+	// 첫 번째 블러: High Texture -> Pingpong[0]
+	DrawGaussianBlur(m_HDRHighTexture, m_PingpongFBO[0], m_GaussianBlurHShader);
+
+	// 이후 반복 블러
+	for (int i = 1; i < amount; i++)
+	{
+		horizontal = !horizontal; 
+		int destIndex = horizontal ? 0 : 1;
+		int srcIndex = horizontal ? 1 : 0;
+		GLuint shader = horizontal ? m_GaussianBlurHShader : m_GaussianBlurVShader;
+
+		DrawGaussianBlur(m_PingpongTexture[srcIndex], m_PingpongFBO[destIndex], shader);
+	}
+    
+	// ---------------------------------------------------------
+	// [추가된 부분] 3. 최종 합성 (Merge) 및 화면 출력
+	// ---------------------------------------------------------
+    
+	// 기본 프레임버퍼(화면) 바인딩
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
+    
+	// 화면을 깨끗이 지움
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// m_HDRLowTexture: 원본 파티클
+	// m_PingpongTexture[0]: 최종 블러된 빛 (반복문이 짝수번 돌면 0번에 저장됨)
+	// Exposure: 2.0f (빛의 세기 조절)
+	DrawMergeBloomTexture(m_HDRLowTexture, m_PingpongTexture[0], 2.0f);
 }
 
 void Renderer::AddTime()
@@ -1087,3 +1148,57 @@ void Renderer::GetGLPosition(float x, float y, float* newX, float* newY)
 	*newY = y * 2.0f / static_cast<float>(m_WindowSizeY);
 }
 
+void Renderer::DrawGaussianBlur(GLuint texID, GLuint targetFBOID, GLuint shader) {
+    glBindFramebuffer(GL_FRAMEBUFFER, targetFBOID);
+    glUseProgram(shader);
+    
+    // Attribute 설정 (a_Position, a_TexPos)
+    // [주의] m_TexVBO 사용 (Position 3 + UV 2)
+    int stride = sizeof(float) * 5; 
+    glBindBuffer(GL_ARRAY_BUFFER, m_TexVBO);
+    
+    int posLoc = glGetAttribLocation(shader, "a_Position");
+    glEnableVertexAttribArray(posLoc);
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, stride, 0);
+    
+    int texLoc = glGetAttribLocation(shader, "a_TexPos");
+    glEnableVertexAttribArray(texLoc);
+    glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*3));
+
+    glUniform1i(glGetUniformLocation(shader, "u_Texture"), 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texID);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    glDisableVertexAttribArray(posLoc);
+    glDisableVertexAttribArray(texLoc);
+}
+
+void Renderer::DrawMergeBloomTexture(GLuint sceneTexID, GLuint bloomTexID, float exposure) {
+    glUseProgram(m_DrawMergeTextureShader);
+    // Attribute 설정은 위와 동일 (생략)
+    int stride = sizeof(float) * 5;
+    glBindBuffer(GL_ARRAY_BUFFER, m_TexVBO);
+    
+    int posLoc = glGetAttribLocation(m_DrawMergeTextureShader, "a_Position");
+    glEnableVertexAttribArray(posLoc);
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, stride, 0);
+    
+    int texLoc = glGetAttribLocation(m_DrawMergeTextureShader, "a_TexPos");
+    glEnableVertexAttribArray(texLoc);
+    glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*3));
+
+    glUniform1i(glGetUniformLocation(m_DrawMergeTextureShader, "u_TextureScene"), 0);
+    glUniform1i(glGetUniformLocation(m_DrawMergeTextureShader, "u_TextureBloom"), 1);
+    glUniform1f(glGetUniformLocation(m_DrawMergeTextureShader, "u_Exposure"), exposure);
+
+    glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, sceneTexID);
+    glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, bloomTexID);
+
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    
+    glDisableVertexAttribArray(posLoc);
+    glDisableVertexAttribArray(texLoc);
+}
