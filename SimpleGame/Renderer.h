@@ -1,11 +1,13 @@
-#pragma once
+﻿#pragma once
 
 #include <string>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <cassert>
 
 #include "Dependencies\glew.h"
+#include "LoadPng.h"
 
 class Renderer
 {
@@ -21,12 +23,17 @@ public:
 	void DrawGridMesh();
 	void AddTime();
 	void DrawFullScreenColor(float r, float g, float b, float a);
-
+	void DrawFS();
+	void DrawTexture(float x, float y, float sx, float sy, GLuint TexID);
+	void DrawDebugTexture();
+	void DrawFBOs();
 
 private:
 	void Initialize(int windowSizeX, int windowSizeY);
 	void CompileAllShaderPrograms();
 	void DeleteAllShaderPrograms();
+
+	GLuint CreatePngTexture(char* filePath, GLuint samplingMethod);
 
 	bool ReadFile(char* filename, std::string* target);
 	void AddShader(GLuint ShaderProgram, const char* pShaderText, GLenum ShaderType);
@@ -36,7 +43,7 @@ private:
 	void GetGLPosition(float x, float y, float* newX, float* newY);
 
 	void GenerateParticles(int numParticle);
-
+	void CreateFBOs();
 
 	bool m_Initialized = false;
 
@@ -62,6 +69,54 @@ private:
 	
 	GLuint m_VBOFullScreen = 0;
 	GLuint m_FullScreenShader = 0;
+
+	static const int RAMP_SIZE = 4; // 컬러 램프의 색상 개수
+	float m_RampColors[RAMP_SIZE][3];
+	float m_RampPositions[RAMP_SIZE];
+
+	float m_Points[100 * 4];
+
+	GLuint m_VBOFS = 0;
+	GLuint m_FSShader = 0;
+
+	GLuint m_RGBTexture = 0;
+	GLuint m_IVETexture = 0;
+	GLuint m_NUMTexture = 0;
+	
+	GLuint m_0Texture = 0;
+	GLuint m_1Texture = 0;
+	GLuint m_2Texture = 0;
+	GLuint m_3Texture = 0;
+	GLuint m_4Texture = 0;
+	GLuint m_5Texture = 0;
+	GLuint m_6Texture = 0;
+	GLuint m_7Texture = 0;
+	GLuint m_8Texture = 0;
+	GLuint m_9Texture = 0;
+
+	GLuint m_TexVBO = 0;
+	GLuint m_TexShader = 0;
+
+	GLuint m_RT0_0 = 0;
+	GLuint m_RT0_1 = 0;
+	GLuint m_RT1_0 = 0;
+	GLuint m_RT1_1 = 0;
+	GLuint m_RT2_0 = 0;
+	GLuint m_RT2_1 = 0;
+	GLuint m_RT3_0 = 0;
+	GLuint m_RT4_0 = 0;
+
+	GLuint m_FBO0 = 0;
+	GLuint m_FBO1 = 0;
+	GLuint m_FBO2 = 0;
+	GLuint m_FBO3 = 0;
+	GLuint m_FBO4 = 0;
+	
+	
+	GLuint m_HDRRT0_0 = 0;
+	GLuint m_HDRRT0_1 = 0;
+	GLuint m_HDRFBO0_0 = 0;
+	GLuint m_HDRFBO0_1 = 0;
 };
 
 

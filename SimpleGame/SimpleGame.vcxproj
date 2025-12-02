@@ -155,11 +155,13 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="LoadPng.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LoadPng.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SimpleGame.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -170,6 +172,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\blender_nodes.glsl" />
+    <None Include="Shaders\FS.fs" />
+    <None Include="Shaders\FS.vs" />
     <None Include="Shaders\FullScreen.fs" />
     <None Include="Shaders\FullScreen.vs" />
     <None Include="Shaders\GridMesh.fs" />
@@ -180,6 +185,8 @@
     <None Include="Shaders\SolidRect.vs" />
     <None Include="Shaders\Test.fs" />
     <None Include="Shaders\Test.vs" />
+    <None Include="Shaders\Texture.fs" />
+    <None Include="Shaders\Texture.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

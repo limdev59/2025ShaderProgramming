@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding" addBOMForNewFiles="with BOM">
+    <file url="file://$PROJECT_DIR$/SimpleGame/LoadPng.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/LoadPng.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Renderer.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Renderer.h" charset="EUC-KR" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/FS.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/FS.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/FullScreen.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/FullScreen.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/GridMesh.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/GridMesh.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/Particle.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/Particle.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/SolidRect.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/SolidRect.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/Test.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/Test.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/Texture.fs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/Texture.vs" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/Shaders/blender_nodes.glsl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/SimpleGame.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/stdafx.cpp" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/stdafx.h" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/SimpleGame/targetver.h" charset="UTF-8" />
+  </component>
+</project>

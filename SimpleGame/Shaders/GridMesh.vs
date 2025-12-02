@@ -1,86 +1,89 @@
-﻿#version 330
+#version 330
+#define MAX_POINTS 100
 
 in vec3 a_Position;
 out vec4 v_Color;
+
 uniform float u_Time;
+uniform vec4 u_Points[MAX_POINTS];
 
-const float c_PI = 3.14159265359;
+const float c_PI = 3.141592;
 
-void Flag()
+void flag()
 {
-    vec4 newPos = vec4(a_Position, 1.0);
+    vec4 newPosition = vec4(a_Position,1);
+    float value = a_Position.x + 0.5f;    // 0-1
+    newPosition.y = newPosition.y * (1-value);
+    float dX = 0;
+    float dY = value * 0.5 * sin(2 * value * c_PI + u_Time * 10);
+    float newColor = (sin(2 * value * c_PI + u_Time * 8) + 1)/2;
 
-    float value = a_Position.x + 0.5;
-    float amp = 0.3;
+    newPosition += vec4(dX,dY,0,0);
+    newPosition.xy *= vec2(2,0.5);
 
-    float dX = 0.0;
-    float dY = value * sin(2.0 * value * c_PI - u_Time * 5.0) * amp;
-    float newColorVal = (sin(2.0 * value * c_PI - u_Time * 5.0) + 1.0) * 0.5;
-
-    newPos.y = newPos.y * (1.0 - value);
-    newPos += vec4(dX, dY, 0.0, 0.0);
-    gl_Position = newPos;
-
-    vec2 colorFactor = (newPos.xy / amp) * 0.5 + 0.5;
-    vec3 lowColor = vec3(0.0, 0.2, 0.5);
-    vec3 highColor = vec3(0.5, 0.8, 1.0);
-    vec3 mixed = mix(lowColor, highColor, colorFactor.y);
-    
-    // newColorVal(float)을 vec3로 변환하여 mix 함수에 사용
-    v_Color = vec4(mix(vec3(newColorVal), mixed, 0.5), 1.0);
+    gl_Position = newPosition;
+//    v_UV.x = (newPosition.x + 1)/2;
+//	v_UV.y = (1 - newPosition.y)/2;
+    v_Color = vec4(newColor);
 }
 
 void Wave()
 {
-    // GLSL에서는 숫자 뒤에 'f'를 붙이지 않아도 float으로 인식됩니다.
-    float AMP = 0.05;
-    float FREQ = 30.0;
-    float SPEED = 3.0;
+    vec4 newPosition = vec4(a_Position, 1);
+    float dX = 0;
+    float dY = 0;
 
-    vec4 newPos = vec4(a_Position, 1.0);
+    vec2 pos = vec2(a_Position.xy);
+    vec2 center = vec2(0,0);
+    float d = distance(pos, center);
+    float y = 2 * clamp(0.5 - d, 0, 1);
+    float newColor = y * sin(d *4 * c_PI * 10 - u_Time * 30);
 
-    float distance = length(newPos.xy);
-    float waveFactor = sin(distance * FREQ - u_Time * SPEED) * AMP;
-    vec2 direction = normalize(newPos.xy + 0.00001); // 0으로 나누는 것을 방지
+    newPosition += vec4(dX, dY,0,0);
+    gl_Position = newPosition;
 
-    // 이 부분은 현재 아무런 효과가 없습니다. (dX, dY가 0)
-    // 아마 의도한 것은 아래와 같을 수 있습니다.
-    // newPos.xy += direction * waveFactor;
-    float dX = 0.0;
-    float dY = 0.0;
-    newPos += vec4(dX, dY, 0.0, 0.0);
-    gl_Position = newPos;
-
-    float colorFactor = (sin(distance * FREQ - u_Time * SPEED) + 1.0) / 2.0;
-    vec3 lowColor = vec3(0.0, 0.1, 0.2);
-    vec3 highColor = vec3(0.5, 0.8, 1.0);
-
-    v_Color = vec4(mix(lowColor, highColor, colorFactor), 1.0);
+    v_Color = vec4(newColor);
 }
 
-const float c_RENDER_DISTANCE = 10.0;
-
-void WaveMinecraft()
+void RainDrop()
 {
-    gl_Position = vec4(a_Position, 1.0);
+    vec4 newPosition = vec4(a_Position, 1);
+    float dX = 0;
+    float dY = 0;
 
-    float distance = length(a_Position.xy);
-    float FREQ = 30.0;
-    float SPEED = 3.0;
+    vec2 pos = vec2(a_Position.xy);
+    float newColor = 0;
+    
+    for(int i  = 0; i< MAX_POINTS; i++)
+    {
+        float sTime = u_Points[i].z;
+        float lTime = u_Points[i].w;
+        float newTime = u_Time - u_Points[i].z;
+        if(newTime > 0) 
+        {
+            float baseTime = fract(newTime / lTime);
+            float oneMinus = 1 - baseTime;
+            float t = baseTime * lTime;
+            float range = baseTime * lTime / 5;
+            vec2 center = u_Points[i].xy;
+            float d = distance(pos, center);
+            float y = 10 * clamp(range - d, 0, 1);
+            newColor += oneMinus * y * sin(d * 4 * c_PI * 10 - t * 30);
+        }
+    }
+    
 
-    float colorFactor = (sin(distance * FREQ - u_Time * SPEED) + 1.0) / 2.0;
-    vec3 lowColor = vec3(0.0, 0.1, 0.2);
-    vec3 highColor = vec3(0.5, 0.8, 1.0);
-    vec3 baseColor = mix(lowColor, highColor, colorFactor);
+    newPosition += vec4(dX, dY, 0, 0);
+    gl_Position = newPosition;
 
-    baseColor += sin(a_Position.x + a_Position.y + a_Position.z) * 0.02;
-    float dist_from_origin = length(a_Position.xyz * 3.0);
-    float finalAlpha = clamp(dist_from_origin / c_RENDER_DISTANCE, 0.3, 0.7);
-
-    v_Color = vec4(baseColor, finalAlpha);
+    v_Color = vec4(newColor);
 }
+
+
 
 void main()
 {
-    WaveMinecraft();
+    RainDrop();
+    // Wave();
+    // RainDrop();
 }
