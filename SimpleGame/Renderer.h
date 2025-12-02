@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <string>
 #include <cstdlib>
@@ -70,7 +70,7 @@ private:
 	GLuint m_VBOFullScreen = 0;
 	GLuint m_FullScreenShader = 0;
 
-	static const int RAMP_SIZE = 4; // ÄÃ·¯ ·¥ÇÁÀÇ »ö»ó °³¼ö
+	static const int RAMP_SIZE = 4; // ì»¬ëŸ¬ ë¨í”„ì˜ ìƒ‰ìƒ ê°œìˆ˜
 	float m_RampColors[RAMP_SIZE][3];
 	float m_RampPositions[RAMP_SIZE];
 
@@ -103,10 +103,6 @@ private:
 	GLuint m_RT1_1 = 0;
 	GLuint m_RT2_0 = 0;
 	GLuint m_RT2_1 = 0;
-
-
-
-
 	GLuint m_RT3_0 = 0;
 	GLuint m_RT4_0 = 0;
 
@@ -115,7 +111,12 @@ private:
 	GLuint m_FBO2 = 0;
 	GLuint m_FBO3 = 0;
 	GLuint m_FBO4 = 0;
-
+	
+	
+	GLuint m_HDRRT0_0 = 0;
+	GLuint m_HDRRT0_1 = 0;
+	GLuint m_HDRFBO0_0 = 0;
+	GLuint m_HDRFBO0_1 = 0;
 };
 
 

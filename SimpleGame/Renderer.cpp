@@ -1,4 +1,4 @@
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "Renderer.h"
 #include "Dependencies\freeglut.h"
 #include "LoadPng.h"
@@ -1046,31 +1046,33 @@ void Renderer::DrawTexture(float x, float y, float sx, float sy, GLuint TexID)
 
 void Renderer::DrawDebugTexture()
 {
-	DrawTexture(-0.8, -0.8, 0.2, 0.2, m_RT0_0);
-	DrawTexture(-0.4, -0.8, 0.2, 0.2, m_RT1_0);
-}
+	// 왼쪽 절반: Particle 결과 (m_RT0_0)
+	// 위치(-0.5, 0), 크기(0.5, 1.0) -> 화면 좌측 채움
+	DrawTexture(-0.5f, 0.0f, 0.5f, 0.5f, m_RT0_0);
 
+	// 오른쪽 절반: FS 쉐이더 결과 (m_RT1_0)
+	// 위치(0.5, 0), 크기(0.5, 1.0) -> 화면 우측 채움
+	DrawTexture(0.5f, 0.0f, 0.5f, 0.5f, m_RT1_0);
+}
 void Renderer::DrawFBOs()
 {
-	// set FBO
+	// 1. FBO0 (Particle 씬) 렌더링
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, 512, 512);
-	// Draw
+	glViewport(0, 0, 512, 512); // 텍스처 크기에 맞춤
 	DrawParticle();
 
-
-	// set FBO
+	// 2. FBO1 (FS 쉐이더 씬) 렌더링
 	glBindFramebuffer(GL_FRAMEBUFFER, m_FBO1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glViewport(0, 0, 512, 512);
-
-	// Draw
+	glViewport(0, 0, 512, 512); // 텍스처 크기에 맞춤
 	DrawFS();
 
-
-	// Restores FBO
+	// 3. 기본 프레임버퍼로 복귀
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	// 중요: 뷰포트를 다시 윈도우 크기로 되돌림 (화면에 그리기 위해)
+	glViewport(0, 0, m_WindowSizeX, m_WindowSizeY);
 }
 
 void Renderer::AddTime()

@@ -1,4 +1,4 @@
-﻿#version 330
+#version 330
 #define MAX_POINTS 100
 
 in vec3 a_Position;
