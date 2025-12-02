@@ -38,6 +38,7 @@ void RenderScene(void)
 	//g_Renderer->DrawFS();
 	g_Renderer->DrawFBOs();
 	g_Renderer->DrawDebugTexture();
+	//g_Renderer->DrawMergeBloomTexture(g_Renderer->GetHDRLowTexture(), g_Renderer->GetBloomTexture(), 2.0f);
 
 	g_Renderer->AddTime();
 
@@ -92,7 +93,7 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize Renderer
-	g_Renderer = new Renderer(500, 500);
+	g_Renderer = new Renderer(512, 512);
 	if (!g_Renderer->IsInitialized())
 	{
 		std::cout << "Renderer could not be initialized.. \n";
